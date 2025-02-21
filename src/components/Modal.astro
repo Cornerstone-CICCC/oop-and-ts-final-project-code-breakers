@@ -1,0 +1,64 @@
+---
+// import astroLogo from '../assets/astro.svg';
+// import background from '../assets/background.svg';
+
+import { Button } from "@/components/ui/button"
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
+
+enum Status {
+    Todo = 0, 
+    InProgress = 1,
+    Completed = 3,
+}
+
+interface ModalProps {
+    title: string;
+    content: string;
+    status: Status;
+}
+
+const sample: ModalProps = {
+    title: "OOP and TS - Final Project",
+    content: "Create a simple Kanban board web app with drag-and-drop functionality using HTML, CSS, TypeScript with classes.",
+    status: Status.InProgress,
+}
+
+const statusLabels: Record<Status, string> = {
+    [Status.Todo]: "Todo",
+    [Status.InProgress]: "In Progress",
+    [Status.Completed]: "Completed",
+}
+---
+
+
+<Card className="container m-auto w-md">
+  <CardHeader>
+    <CardTitle>{sample.title}</CardTitle>
+  </CardHeader>
+  <CardContent>
+      <CardDescription>
+        {sample.content}
+        {statusLabels[sample.status]}
+    </CardDescription>
+    </CardContent>
+  <CardFooter className="flex justify-between">
+    <Button variant="outline">Cancel</Button>
+    <Button>Deploy</Button>
+  </CardFooter>
+</Card>
+

@@ -1,0 +1,70 @@
+---
+import {
+    Card,
+    CardContent,
+    CardDescription,
+    CardHeader,
+    CardTitle,
+} from "@/components/ui/card";
+import { Badge } from "./ui/badge";
+import { Avatar } from "./ui/avatar";
+import { TaskActionMenu } from "./TaskActionMenu";
+
+interface Member {
+    initials: string;
+    color: string;
+}
+
+interface Props {
+    label: string;
+    title: string;
+    description: string;
+    members: Member[];
+}
+
+// 背景色のマッピング
+const getBackgroundColor = (color: string) => {
+    const colorMap: Record<string, string> = {
+        blue: "bg-blue-600",
+        green: "bg-green-500",
+        red: "bg-red-500",
+        purple: "bg-purple-500",
+    };
+    return colorMap[color] || "bg-gray-500";
+};
+
+const { label, title, description, members = [] } = Astro.props;
+---
+
+<Card className="w-80 bg-white">
+    <CardHeader className="flex flex-row items-center justify-between">
+        <Badge
+            variant="secondary"
+            className="bg-pink-100 text-pink-500 hover:bg-pink-100"
+        >
+            {label}
+        </Badge>
+        <TaskActionMenu client:load />
+    </CardHeader>
+    <CardContent>
+        <CardTitle className="text-xl font-semibold mb-2">
+            {title}
+        </CardTitle>
+        <CardDescription className="text-gray-600 text-sm">
+            {description}
+        </CardDescription>
+        <div class="flex mt-4">
+            <div class="flex -space-x-2">
+                {
+                    members.map((member: Member) => (
+                        <Avatar
+                            className={`w-8 h-8 border-2 border-white ${getBackgroundColor(member.color)} flex items-center justify-center text-white text-sm`}
+                        >
+                            {member.initials}
+                        </Avatar>
+                    ))
+                }
+            </div>
+        </div>
+    </CardContent>
+</Card>

@@ -1,0 +1,72 @@
+---
+const statusList = {
+  1: "ToDo",
+  2: "InProgress",
+  3: "Done"
+};
+
+interface Task {
+  id: number;
+  title: string;
+  content: string;
+  status: number;
+}
+
+const task: Task = {
+    id: 1,
+    title: "OOP and TS - Final Project",
+    content: "Create a simple Kanban board web app.",
+    status: 1,
+  }
+---
+
+<div>
+  <label for={`task-${task.id}`} class="btn">Open Modal</label>
+  <input type="checkbox" id={`task-${task.id}`} class="modal-toggle" />
+  <div class="modal" role="dialog">
+    <div class="modal-box">
+      <h3 class="text-lg">
+        <div id={`js-title-display-${task.id}`} class="cursor-pointer">{task.title}</div>
+        <input type="text" id={`js-title-input-${task.id}`} class="hidden input input-bordered w-full" value={task.title} />
+      </h3>
+      <p class="py-4">{task.content}</p>
+      <select name="task-status" value={task.status}>
+        {Object.entries(statusList).map(([key, value]) => (
+          <option value={key} selected={parseInt(key) === task.status}>{value}</option>
+        ))}
+      </select>
+    </div>
+    <label class="modal-backdrop" for={`task-${task.id}`}>Close</label>
+  </div>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  document.querySelectorAll("[id^=js-title-display]").forEach(titleDisplay => {
+    const taskId = titleDisplay.id.replace("js-title-display-", "");
+    const titleInput = document.getElementById(`js-title-input-${taskId}`);
+    
+    if (!titleInput) return;
+
+    titleDisplay.addEventListener("click", () => {
+      titleDisplay.classList.add("hidden");
+      titleInput.classList.remove("hidden");
+      titleInput.focus();
+    });
+
+    titleInput.addEventListener("blur", async (e) => {
+      console.log(e.target);
+      const newTitle = e.target?.value;
+      titleDisplay.textContent = newTitle;
+      titleDisplay.classList.remove("hidden");
+      titleInput.classList.add("hidden");
+    });
+
+    titleInput.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") {
+        titleInput.blur();
+      }
+    });
+  });
+});
+</script>

@@ -29,7 +29,7 @@ const task: Task = {
         <div id={`js-title-display-${task.id}`} class="cursor-pointer font-bold px-4 rounded-lg leading-[3rem] hover:bg-gray-50">{task.title}</div>
         <input id={`js-title-input-${task.id}`} type="text" value={task.title} class="hidden input input-bordered w-full p-4 text-lg leading-[3rem]" />
       </h3>
-      <div class="h-32 flex">
+      <div class="h-32 flex grow">
         <p id={`js-content-display-${task.id}`} class="size-full p-4 overflow-x-scroll rounded-lg hover:bg-gray-50">{task.content}</p>
         <textarea id={`js-content-input-${task.id}`} class="hidden input input-bordered size-full p-4" rows="5">{task.content}</textarea>
       </div>

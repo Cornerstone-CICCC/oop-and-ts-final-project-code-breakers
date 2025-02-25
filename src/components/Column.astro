@@ -1,8 +1,20 @@
 ---
+import Taskcard from './Taskcard.astro';
+
 // import AddTaskModal from "./AddTaskModal.astro";
+
+type status = { key: string; value: string };
+
+interface Task {
+  id: number;
+  title: string;
+  description: string;
+  status: status;
+}
 
 interface Props {
   status: { key: string, value: string };
+  taskList: Task[];
 }
 
 const { status} = Astro.props;
@@ -21,6 +33,7 @@ const { status} = Astro.props;
     </div>
   </div>
   <div class="flex flex-col gap-4">
+    <Taskcard />
     <!-- Tasks here -->
   </div>
   <!-- Modal here -->

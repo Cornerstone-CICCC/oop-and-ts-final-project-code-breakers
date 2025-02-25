@@ -16,7 +16,7 @@ interface Task {
   status: status;
 }
 
-const task: Task[] =[
+const todoTask: Task[] =[
   {
     id: 1,
     title: "OOP and TS - Final Project",
@@ -27,8 +27,8 @@ const task: Task[] =[
     id: 2,
     title: "test",
     description: "test content",
-    status: { key: "done", value: "Done" },
-  }
+    status: { key: "todo", value: "To do" },
+  },
 ]
 
 ---
@@ -40,7 +40,7 @@ const task: Task[] =[
     {
       statusList.map((status) => (
         <div class="min-w-[85vw] md:min-w-0 snap-center">
-          <Column status={status} />
+          <Column status={status} taskList={todoTask}/>
         </div>
       ))
     }

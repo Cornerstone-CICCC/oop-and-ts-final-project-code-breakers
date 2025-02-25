@@ -119,12 +119,6 @@ document.addEventListener("DOMContentLoaded", () => {
       contentInput.classList.add("hidden");
       updateContent(taskId,newContent);
     });
-
-    contentInput.addEventListener("keydown", (e) => {
-      if (e.key === "Enter") {
-        contentInput.blur();
-      }
-    });
   });
 });
 </script>

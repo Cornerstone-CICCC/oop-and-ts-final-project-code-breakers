@@ -2,19 +2,19 @@
 // import AddTaskModal from "./AddTaskModal.astro";
 
 interface Props {
-  taskTypeObj: { key: string; value: string };
+  status: { key: string, value: string };
 }
 
-const { taskTypeObj } = Astro.props;
+const { status} = Astro.props;
 ---
 
 <div class="bg-slate-100 rounded-lg p-4">
   <div class="flex justify-between items-center mb-4">
-    <h2 class="text-base font-semibold">{taskTypeObj.value}</h2>
+    <h2 class="text-base font-semibold">{status.value}</h2>
     <div class="flex gap-2">
       <button
         class="p-1 hover:bg-slate-200 rounded"
-        data-column={taskTypeObj.key}
+        data-column={status.key}
       >
         <i class="fa-solid fa-plus"></i>
       </button>

@@ -27,18 +27,18 @@ const task: Task = {
     <div class="modal-box flex flex-col gap-3">
       <h3 class="text-lg">
         <div id={`js-title-display-${task.id}`} class="cursor-pointer font-bold px-4 rounded-lg leading-[3rem] hover:bg-gray-50">{task.title}</div>
-        <input id={`js-title-input-${task.id}`} type="text" value={task.title} class="hidden input input-bordered w-full" />
+        <input id={`js-title-input-${task.id}`} type="text" value={task.title} class="hidden input input-bordered w-full p-4 text-lg leading-[3rem]" />
       </h3>
       <div class="h-32 flex">
         <p id={`js-content-display-${task.id}`} class="size-full p-4 overflow-x-scroll rounded-lg hover:bg-gray-50">{task.content}</p>
-        <textarea id={`js-content-input-${task.id}`} class="hidden input input-bordered size-full p-4" rows="5" style="height:100%; padding:1rem">{task.content}</textarea>
+        <textarea id={`js-content-input-${task.id}`} class="hidden input input-bordered size-full p-4" rows="5">{task.content}</textarea>
       </div>
       <div class="w-full max-w-xs">
         <div class="relative">
           <select 
             id={`js-content-select-${task.id}`}
             name="task-status" 
-            class="select select-bordered w-full pl-10 pr-4 py-2"
+            class="select select-bordered w-full pl-4 py-2"
             onchange="updateStatus(event)"
           >
             {Object.entries(statusList).map(([key, value]) => (

@@ -1,0 +1,26 @@
+---
+import Column from "./Column.astro";
+
+type taskType = { key: string; value: string };
+
+const taskTypes: taskType[] = [
+  { key: "todo", value: "To do" },
+  { key: "in-progress", value: "In progress" },
+  { key: "done", value: "Done" },
+];
+---
+
+<div class="p-8 font-sans">
+  <h1 class="text-2xl font-semibold mb-8">Kanbanaza</h1>
+  <div
+    class="md:grid md:grid-cols-3 md:gap-6 flex gap-6 overflow-x-auto pb-4 snap-x"
+  >
+    {
+      taskTypes.map((taskTypeObj) => (
+        <div class="min-w-[85vw] md:min-w-0 snap-center">
+          <Column taskTypeObj={taskTypeObj} />
+        </div>
+      ))
+    }
+  </div>
+</div>

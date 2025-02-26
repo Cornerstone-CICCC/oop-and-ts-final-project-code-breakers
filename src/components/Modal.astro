@@ -1,13 +1,13 @@
 ---
 import type { Task, statusType } from '../types/task';
 import { statusList } from '../types/task';
-// import Taskcard from './Taskcard.astro';
 
 interface Props {
     task:Task;
+    hideStatus?:boolean;
 }
 
-const { task } = Astro.props;
+const { task, hideStatus=false } = Astro.props;
 ---
 
 <div class="modal z-1000" role="dialog">
@@ -20,22 +20,24 @@ const { task } = Astro.props;
       <p id={`js-content-display-${task.id}`} class="size-full p-4 overflow-x-scroll rounded-lg hover:bg-gray-50">{task.description}</p>
       <textarea id={`js-content-input-${task.id}`} class="hidden input input-bordered size-full p-4 text-base" rows="5">{task.description}</textarea>
     </div>
-    <div class="w-full max-w-xs">
-      <div class="relative">
-        <select 
-          id={`js-content-select-${task.id}`}
-          name="task-status" 
-          class="select select-bordered w-full pl-4 py-2"
-          onchange="updateStatus(event)"
-        >
-          {statusList.map((status) => (
-            <option value={status.key} selected={status.value === status.value} >
-              {status.value}
-            </option>
-          ))}
-        </select>
+    {!hideStatus && ( 
+      <div class="w-full max-w-xs">
+        <div class="relative">
+          <select 
+            id={`js-content-select-${task.id}`}
+            name="task-status" 
+            class="select select-bordered w-full pl-4 py-2"
+            onchange="updateStatus(event)"
+          >
+            {statusList.map((status) => (
+              <option value={status.key} selected={status.key === task.status.key}>
+                {status.value}
+              </option>
+            ))}
+          </select>
+        </div>
       </div>
-    </div>
+    )}
   </div>
   <label class="modal-backdrop" for={`task-${task.id}`}></label>
 </div>
@@ -56,7 +58,6 @@ function updateStatus(event) {
   }
 
 document.addEventListener("DOMContentLoaded", () => {
-  
   // title edit
   document.querySelectorAll("[id^=js-title-display]").forEach(titleDisplay => {
     const taskId = titleDisplay.id.replace("js-title-display-", "");

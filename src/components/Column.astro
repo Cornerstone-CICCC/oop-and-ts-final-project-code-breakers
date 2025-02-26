@@ -1,7 +1,7 @@
 ---
 import type { Task, statusType } from '../types/task';
 import Taskcard from './Taskcard.astro';
-// import Modal from './Modal.astro';
+import Modal from './Modal.astro';
 
 interface Props {
   status: statusType;
@@ -9,18 +9,28 @@ interface Props {
 }
 
 const {status,taskList} = Astro.props;
+
+const newTask: Task = {
+  id: 401,
+  title: "New Task",
+  description: "This is a new task.",
+  status: status,
+};
+
+console.log(newTask);
+
+
 ---
 
 <div class="bg-slate-100 rounded-lg p-4">
   <div class="flex justify-between items-center mb-4">
     <h2 class="text-base font-semibold">{status.value}</h2>
     <div class="flex gap-2">
-      <button
-        class="p-1 hover:bg-slate-200 rounded"
-        data-column={status.key}
-      >
+      <label for={`task-${newTask.id}`} class="cursor-pointer">
         <i class="fa-solid fa-plus"></i>
-      </button>
+      </label>
+      <input type="checkbox" id={`task-${newTask.id}`} class="modal-toggle" />  
+      <Modal task={newTask} hideStatus={true} />
     </div>
   </div>
   <div class="flex flex-col gap-4">

@@ -1,6 +1,6 @@
-type status = { key: string; value: string };
+export type statusType = { key: string; value: string };
 
-const statusList: status[] = [
+export const statusList: statusType[] = [
   { key: "todo", value: "To do" },
   { key: "in-progress", value: "In progress" },
   { key: "done", value: "Done" },
@@ -10,12 +10,5 @@ export interface Task {
   id: number;
   title: string;
   description: string;
-  status: status;
-}
-
-export interface Task {
-  id: number;
-  title: string;
-  description: string;
-  status: status;
+  status: statusType;
 }

@@ -1,35 +1,65 @@
 ---
+import type { Task } from '../types/task';
+import { statusList } from '../types/task';
 import Column from "./Column.astro";
 
-type status = { key: string; value: string };
-
-const statusList: status[] = [
-  { key: "todo", value: "To do" },
-  { key: "in-progress", value: "In progress" },
-  { key: "done", value: "Done" },
+const todoTasks: Task[] = [
+  {
+    id: 101,
+    title: "Plan Weekly Team Meeting",
+    description: "Prepare agenda and send out meeting invite.",
+    status: { key: "todo", value: "To do" },
+  },
+  {
+    id: 102,
+    title: "Review Project Documentation",
+    description: "Check the latest version of the project documentation for accuracy.",
+    status: { key: "todo", value: "To do" },
+  },
+  {
+    id: 103,
+    title: "Setup Development Environment",
+    description: "Install necessary tools and configure environment for new project.",
+    status: { key: "todo", value: "To do" },
+  },
 ];
 
-interface Task {
-  id: number;
-  title: string;
-  description: string;
-  status: status;
-}
+const inProgressTasks: Task[] = [
+  {
+    id: 201,
+    title: "Develop User Authentication Feature",
+    description: "Implement secure user login and registration functionality.",
+    status: { key: "in-progress", value: "In Progress" },
+  },
+  {
+    id: 202,
+    title: "Design Database Schema",
+    description: "Create the database schema for the new application.",
+    status: { key: "in-progress", value: "In Progress" },
+  },
+  {
+    id: 203,
+    title: "Write Unit Tests for API Endpoints",
+    description: "Develop comprehensive unit tests for all API endpoints.",
+    status: { key: "in-progress", value: "In Progress" },
+  },
+];
 
-const todoTask: Task[] =[
+const doneTasks: Task[] = [
   {
-    id: 1,
-    title: "OOP and TS - Final Project",
-    description: "Create a simple Kanban board web app.",
-    status: { key: "todo", value: "To do" },
+    id: 301,
+    title: "Complete UI Design Mockups",
+    description: "Finalize the UI design mockups for the landing page.",
+    status: { key: "done", value: "Done" },
   },
   {
-    id: 2,
-    title: "test",
-    description: "test content",
-    status: { key: "todo", value: "To do" },
+    id: 302,
+    title: "Deploy Backend Service to Production",
+    description: "Deploy the latest version of the backend service to the production server.",
+    status: { key: "done", value: "Done" },
   },
-]
+];
+
 
 ---
 
@@ -37,12 +67,22 @@ const todoTask: Task[] =[
   <div
     class="md:grid md:grid-cols-3 md:gap-6 flex gap-6 overflow-x-auto pb-4 snap-x"
   >
-    {
-      statusList.map((status) => (
+  {
+    statusList.map((status) => {
+      let taskList: Task[] = [];
+      if (status.key === "todo") {
+        taskList = todoTasks;
+      } else if (status.key === "in-progress") {
+        taskList = inProgressTasks;
+      } else if (status.key === "done") {
+        taskList = doneTasks;
+      }
+      return (
         <div class="min-w-[85vw] md:min-w-0 snap-center">
-          <Column status={status} taskList={todoTask}/>
+          <Column status={status} taskList={taskList} />
         </div>
-      ))
-    }
+      );
+    })
+  }
   </div>
 </div>

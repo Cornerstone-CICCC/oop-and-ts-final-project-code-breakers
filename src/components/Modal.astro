@@ -1,38 +1,26 @@
 ---
-const statusList = {
-  1: "ToDo",
-  2: "InProgress",
-  3: "Done"
-};
+import type { Task, statusType } from '../types/task';
+import { statusList } from '../types/task';
 
-interface Task {
-  id: number;
-  title: string;
-  content: string;
-  status: number;
+interface Props {
+    task:Task;
+    hideStatus?:boolean;
 }
 
-const task: Task = {
-    id: 1,
-    title: "OOP and TS - Final Project",
-    content: "Create a simple Kanban board web app.",
-    status: 1,
-  }
+const { task, hideStatus=false } = Astro.props;
 ---
 
-<div>
-  <label for={`task-${task.id}`} class="btn">Open Modal</label>
-  <input type="checkbox" id={`task-${task.id}`} class="modal-toggle" />
-  <div class="modal" role="dialog">
-    <div class="modal-box flex flex-col gap-3">
-      <h3 class="text-lg">
-        <div id={`js-title-display-${task.id}`} class="cursor-pointer font-bold px-4 rounded-lg leading-[3rem] hover:bg-gray-50">{task.title}</div>
-        <input id={`js-title-input-${task.id}`} type="text" value={task.title} class="hidden input input-bordered w-full p-4 text-lg leading-[3rem]" />
-      </h3>
-      <div class="h-32 flex grow">
-        <p id={`js-content-display-${task.id}`} class="size-full p-4 overflow-x-scroll rounded-lg hover:bg-gray-50">{task.content}</p>
-        <textarea id={`js-content-input-${task.id}`} class="hidden input input-bordered size-full p-4" rows="5">{task.content}</textarea>
-      </div>
+<div class="modal z-1000" role="dialog">
+  <div class="modal-box flex flex-col gap-3">
+    <h3 class="text-lg">
+      <div id={`js-title-display-${task.id}`} class="cursor-pointer font-bold px-4 rounded-lg leading-[3rem] hover:bg-gray-50">{task.title}</div>
+      <input id={`js-title-input-${task.id}`} type="text" value={task.title} class="hidden input input-bordered w-full p-4 text-lg leading-[3rem]" />
+    </h3>
+    <div class="h-32 flex grow">
+      <p id={`js-content-display-${task.id}`} class="size-full p-4 overflow-x-scroll rounded-lg hover:bg-gray-50">{task.description}</p>
+      <textarea id={`js-content-input-${task.id}`} class="hidden input input-bordered size-full p-4 text-base" rows="5">{task.description}</textarea>
+    </div>
+    {!hideStatus && ( 
       <div class="w-full max-w-xs">
         <div class="relative">
           <select 
@@ -41,17 +29,17 @@ const task: Task = {
             class="select select-bordered w-full pl-4 py-2"
             onchange="updateStatus(event)"
           >
-            {Object.entries(statusList).map(([key, value]) => (
-              <option value={key} selected={parseInt(key) === task.status} >
-                {value}
+            {statusList.map((status) => (
+              <option value={status.key} selected={status.key === task.status.key}>
+                {status.value}
               </option>
             ))}
           </select>
         </div>
       </div>
-    </div>
-    <label class="modal-backdrop" for={`task-${task.id}`}></label>
+    )}
   </div>
+  <label class="modal-backdrop" for={`task-${task.id}`}></label>
 </div>
 
 <script is:inline>
@@ -70,7 +58,6 @@ function updateStatus(event) {
   }
 
 document.addEventListener("DOMContentLoaded", () => {
-  
   // title edit
   document.querySelectorAll("[id^=js-title-display]").forEach(titleDisplay => {
     const taskId = titleDisplay.id.replace("js-title-display-", "");

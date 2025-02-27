@@ -2,23 +2,6 @@
 import { taskListInstance, statusList } from '../lib/TaskList';
 import type { Task } from '../lib/TaskList';
 import Column from './Column.astro';
-
-// sample data
-taskListInstance.add({
-  title: 'Finish project',
-  description: 'Complete the final assignment for the course',
-  status: statusList[0],
-});
-taskListInstance.add({
-  title: 'presentation',
-  description: 'Complete the final assignment for the course',
-  status: statusList[0],
-});
-taskListInstance.add({
-  title: 'test',
-  description: 'Complete the final assignment for the course',
-  status: statusList[0],
-});
 ---
 
 <div class="p-8 font-sans">
@@ -36,3 +19,24 @@ taskListInstance.add({
     }
   </div>
 </div>
+
+<script>
+  import { taskListInstance, statusList } from '../lib/TaskList';
+
+  // sample data
+  taskListInstance.add({
+    title: 'project02',
+    description: 'Complete the final assignment for the course',
+    status: statusList[0],
+  });
+  taskListInstance.add({
+    title: 'presentation03',
+    description: 'Complete the final assignment for the course',
+    status: statusList[0],
+  });
+  taskListInstance.add({
+    title: 'test',
+    description: 'Complete the final assignment for the course',
+    status: statusList[0],
+  });
+</script>

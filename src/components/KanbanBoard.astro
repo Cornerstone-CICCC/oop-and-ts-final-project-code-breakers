@@ -1,26 +1,88 @@
 ---
+import type { Task } from '../types/task';
+import { statusList } from '../types/task';
 import Column from "./Column.astro";
 
-type taskType = { key: string; value: string };
-
-const taskTypes: taskType[] = [
-  { key: "todo", value: "To do" },
-  { key: "in-progress", value: "In progress" },
-  { key: "done", value: "Done" },
+const todoTasks: Task[] = [
+  {
+    id: 101,
+    title: "Plan Weekly Team Meeting",
+    description: "Prepare agenda and send out meeting invite.",
+    status: { key: "todo", value: "To do" },
+  },
+  {
+    id: 102,
+    title: "Review Project Documentation",
+    description: "Check the latest version of the project documentation for accuracy.",
+    status: { key: "todo", value: "To do" },
+  },
+  {
+    id: 103,
+    title: "Setup Development Environment",
+    description: "Install necessary tools and configure environment for new project.",
+    status: { key: "todo", value: "To do" },
+  },
 ];
+
+const inProgressTasks: Task[] = [
+  {
+    id: 201,
+    title: "Develop User Authentication Feature",
+    description: "Implement secure user login and registration functionality.",
+    status: { key: "in-progress", value: "In Progress" },
+  },
+  {
+    id: 202,
+    title: "Design Database Schema",
+    description: "Create the database schema for the new application.",
+    status: { key: "in-progress", value: "In Progress" },
+  },
+  {
+    id: 203,
+    title: "Write Unit Tests for API Endpoints",
+    description: "Develop comprehensive unit tests for all API endpoints.",
+    status: { key: "in-progress", value: "In Progress" },
+  },
+];
+
+const doneTasks: Task[] = [
+  {
+    id: 301,
+    title: "Complete UI Design Mockups",
+    description: "Finalize the UI design mockups for the landing page.",
+    status: { key: "done", value: "Done" },
+  },
+  {
+    id: 302,
+    title: "Deploy Backend Service to Production",
+    description: "Deploy the latest version of the backend service to the production server.",
+    status: { key: "done", value: "Done" },
+  },
+];
+
+
 ---
 
 <div class="p-8 font-sans">
-  <h1 class="text-2xl font-semibold mb-8">Kanbanaza</h1>
   <div
     class="md:grid md:grid-cols-3 md:gap-6 flex gap-6 overflow-x-auto pb-4 snap-x"
   >
-    {
-      taskTypes.map((taskTypeObj) => (
+  {
+    statusList.map((status) => {
+      let taskList: Task[] = [];
+      if (status.key === "todo") {
+        taskList = todoTasks;
+      } else if (status.key === "in-progress") {
+        taskList = inProgressTasks;
+      } else if (status.key === "done") {
+        taskList = doneTasks;
+      }
+      return (
         <div class="min-w-[85vw] md:min-w-0 snap-center">
-          <Column taskTypeObj={taskTypeObj} />
+          <Column status={status} taskList={taskList} />
         </div>
-      ))
-    }
+      );
+    })
+  }
   </div>
 </div>

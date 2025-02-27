@@ -56,6 +56,8 @@ export class TaskList {
   }
 }
 
+export const taskListInstance = new TaskList();
+
 // Example usage
 // const taskList = new TaskList();
 // const task1 = taskList.add({

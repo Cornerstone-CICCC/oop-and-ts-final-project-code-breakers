@@ -20,17 +20,11 @@
 
 <script>
   import { taskListInstance } from '../lib/TaskList';
-  console.log(taskListInstance.getTasks());
-
   const searchInput = document.getElementById('searchInput') as HTMLInputElement;
-  const searchButton = document.getElementById('searchButton') as HTMLButtonElement;
   const taskSuggestions = document.getElementById('taskSuggestions') as HTMLUListElement;
 
   function updateTaskList(query: string) {
-    console.log(query);
-
     const filteredTasks = taskListInstance.getTasksByKeyword(query);
-    console.log(filteredTasks);
     if (filteredTasks.length > 0) {
       taskSuggestions.style.display = 'block';
     } else {
@@ -54,6 +48,5 @@
     updateTaskList(query);
   }
 
-  searchButton.addEventListener('click', handleSearch);
   searchInput.addEventListener('input', handleSearch);
 </script>

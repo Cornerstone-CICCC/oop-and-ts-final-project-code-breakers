@@ -1,21 +1,16 @@
 ---
-import { taskListInstance, statusList } from '../lib/TaskList';
-import type { Task } from '../lib/TaskList';
+import { statusList } from '../lib/TaskList';
 import Column from './Column.astro';
 ---
 
 <div class="p-8 font-sans">
   <div class="md:grid md:grid-cols-3 md:gap-6 flex gap-6 overflow-x-auto pb-4 snap-x">
     {
-      statusList.map((status) => {
-        let taskList: Task[] = [];
-        taskList = taskListInstance.getTasksByStatus(status);
-        return (
-          <div class="min-w-[85vw] md:min-w-0 snap-center">
-            <Column status={status} taskList={taskList} />
-          </div>
-        );
-      })
+      statusList.map((status) => (
+        <div class="min-w-[85vw] md:min-w-0 snap-center">
+          <Column status={status} />
+        </div>
+      ))
     }
   </div>
 </div>
@@ -23,20 +18,34 @@ import Column from './Column.astro';
 <script>
   import { taskListInstance, statusList } from '../lib/TaskList';
 
-  // sample data
-  taskListInstance.add({
-    title: 'project02',
-    description: 'Complete the final assignment for the course',
-    status: statusList[0],
-  });
-  taskListInstance.add({
-    title: 'presentation03',
-    description: 'Complete the final assignment for the course',
-    status: statusList[0],
-  });
-  taskListInstance.add({
-    title: 'test',
-    description: 'Complete the final assignment for the course',
-    status: statusList[0],
+  document.addEventListener('DOMContentLoaded', () => {
+    const container = document.querySelector('#kanban-board');
+
+    statusList.forEach((status) => {
+      const taskList = taskListInstance.getTasksByStatus(status);
+      const columnDiv = document.createElement('div');
+      columnDiv.className = 'min-w-[85vw] md:min-w-0 snap-center';
+
+      const columnContent = `
+        <div class="column">
+          <h2>${status}</h2>
+          <ul>
+            ${taskList
+              .map(
+                (task) => `
+              <li>
+                <h3>${task.title}</h3>
+                <p>${task.description}</p>
+              </li>
+            `,
+              )
+              .join('')}
+          </ul>
+        </div>
+      `;
+
+      columnDiv.innerHTML = columnContent;
+      container?.appendChild(columnDiv);
+    });
   });
 </script>

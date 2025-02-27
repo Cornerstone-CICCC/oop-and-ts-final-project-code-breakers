@@ -1,14 +1,14 @@
 ---
-import type { Task, statusType } from '../types/task';
+import type { Task } from '../lib/TaskList';
+import type { Status } from '../lib/TaskList';
 import Taskcard from './Taskcard.astro';
 import Modal from './Modal.astro';
 
 interface Props {
-  status: statusType;
-  taskList: Task[];
+  status: Status;
 }
 
-const {status,taskList} = Astro.props;
+const {status} = Astro.props;
 
 const newTask: Task = {
   id: 401,
@@ -29,11 +29,7 @@ const newTask: Task = {
       <Modal task={newTask} hideStatus={true} />
     </div>
   </div>
-  <div class="flex flex-col gap-4">
-    {taskList.map((task) => (
-      <Taskcard task={task} />
-    ))}
-  </div>
+  <Taskcard status={status}/>
 </div>
 
 <script>

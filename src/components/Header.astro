@@ -1,3 +1,41 @@
+---
+type status = { key: string; value: string };
+
+const statusList: status[] = [
+  { key: "todo", value: "To do" },
+  { key: "in-progress", value: "In progress" },
+  { key: "done", value: "Done" },
+];
+
+interface Task {
+  id: number;
+  title: string;
+  description: string;
+  status: { key: string; value: string };
+}
+
+const tasks: Task[] = [
+  {
+    id: 1,
+    title: "OOP and TS - Final Project",
+    description: "Create a simple Kanban board web app.",
+    status: { key: "todo", value: "To do" },
+  },
+  {
+    id: 2,
+    title: "test",
+    description: "test content",
+    status: { key: "done", value: "Done" },
+  },
+  {
+    id: 3,
+    title: "presentation",
+    description: "present our project",
+    status: { key: "in-progress", value: "In progress" },
+  },
+];
+---
+
 <header>
   <div class="flex flex-col md:flex-row justify-between items-center p-4 gap-4">
     <h1 class="text-2xl font-bold">Kanbanaza</h1>
@@ -9,11 +47,66 @@
         type="text"
         placeholder="Search..."
         class="input input-bordered join-item w-[350px] focus:outline-none"
+        id="searchInput"
       />
-      <button class="btn join-item">
+      <button class="btn join-item" id="searchButton">
         <i class="fa-solid fa-magnifying-glass"></i>
       </button>
     </div>
   </div>
   <hr />
 </header>
+
+<ul id="taskList" style="display: none;"></ul>
+
+<script>
+  const tasks = JSON.parse(`{JSON.stringify(tasks)}`);
+
+  const searchInput = document.getElementById(
+    "searchInput",
+  ) as HTMLInputElement;
+  const searchButton = document.getElementById(
+    "searchButton",
+  ) as HTMLButtonElement;
+  const taskList = document.getElementById("taskList") as HTMLUListElement;
+
+  function filterTasks(query: string) {
+    return tasks.filter(
+      (task: any) =>
+        task.title.toLowerCase().includes(query.toLowerCase()) ||
+        task.description.toLowerCase().includes(query.toLowerCase()),
+    );
+  }
+
+  function updateTaskList(query: string) {
+    const filteredTasks = filterTasks(query);
+    if (filteredTasks.length > 0) {
+      taskList.style.display = "block";
+    } else {
+      taskList.style.display = "none";
+    }
+
+    taskList.innerHTML = filteredTasks
+      .map(
+        (task: any) => `
+        <li class="task-item">
+          <h2>${task.title}</h2>
+          <p>${task.description}</p>
+        </li>
+      `,
+      )
+      .join("");
+  }
+
+  function handleSearch() {
+    const query = searchInput.value.trim();
+    updateTaskList(query);
+  }
+
+  searchButton.addEventListener("click", handleSearch);
+  searchInput.addEventListener("keyup", (event) => {
+    if (event.key === "Enter") {
+      handleSearch();
+    }
+  });
+</script>

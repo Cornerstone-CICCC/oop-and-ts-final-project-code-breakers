@@ -15,7 +15,7 @@ export interface Task {
 
 export class TaskList {
   private tasks: Task[] = [];
-  private nextId: number = 1;
+  private nextId: number = 0;
 
   // Adds a new task, auto-generating an ID
   add(newTask: Omit<Task, 'id'>): Task {
@@ -27,6 +27,7 @@ export class TaskList {
   // Updates a task by ID with the provided fields
   update(id: number, updatedFields: Partial<Omit<Task, 'id'>>): Task | undefined {
     const task = this.tasks.find((t) => t.id === id);
+    console.log('task updating', task);
     if (task) {
       Object.assign(task, updatedFields);
     }

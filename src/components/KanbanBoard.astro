@@ -20,8 +20,9 @@ import Column from './Column.astro';
   import type { Task } from '../types/task';
 
   //kanban-board
-  document.addEventListener('DOMContentLoaded', () => {
+  function renderKanban() {
     const container = document.querySelector('#kanban-board');
+    if (!container) return;
     statusList.forEach((status) => {
       const taskList = taskListInstance.getTasksByStatus(status);
       const columnDiv = document.createElement('div');
@@ -46,9 +47,9 @@ import Column from './Column.astro';
       `;
 
       columnDiv.innerHTML = columnContent;
-      container?.appendChild(columnDiv);
+      container.appendChild(columnDiv);
     });
-  });
+  }
 
   //task card
   function createTaskCardHTML(task: Task) {
@@ -89,21 +90,23 @@ import Column from './Column.astro';
       `;
     return taskCard;
   }
-  document.addEventListener('DOMContentLoaded', () => {
+  function renderTaskCard() {
     statusList.forEach((status) => {
       const container = document.querySelector(`#column-${status.key}`);
+      if (!container) return;
       const taskList = taskListInstance.getTasksByStatus(status);
       console.log(taskListInstance.getTasksByStatus(status));
 
+      container.innerHTML = '';
       taskList.forEach((task) => {
-        container?.appendChild(createTaskCardHTML(task));
+        container.appendChild(createTaskCardHTML(task));
       });
     });
-  });
+  }
 
   //modal
 
-  function createModalHTML(task: Task, id: string|number) {
+  function createModalHTML(task: Task, id: string | number) {
     const modal = document.createElement('div');
     modal.className = 'modal z-1000';
     modal.role = 'dialog';
@@ -160,22 +163,39 @@ import Column from './Column.astro';
         `;
     return modal;
   }
-  document.addEventListener('DOMContentLoaded', () => {
+
+  function renderModal() {
     statusList.forEach((status) => {
       const taskList = taskListInstance.getTasksByStatus(status);
       taskList.forEach((task) => {
         const container = document.querySelector(`#task-${task.id}`);
-        container?.parentNode?.appendChild(createModalHTML(task,task.id));
+        container?.parentNode?.appendChild(createModalHTML(task, task.id));
+        // this is comfliting with the above code
+        // temporary comment out
+        // const parentElement = container?.parentNode as Element | null;
+        // if (!container || !parentElement) return;
+        // parentElement.querySelector('div.modal')?.remove();
+        // parentElement.appendChild(createModalHTML(task));
       });
     });
+  }
 
+  // Render
+  document.addEventListener('DOMContentLoaded', () => {
+    renderKanban();
+    renderTaskCard();
+    renderModal();
+    addEventListenerModal();
+  });
+
+  document.addEventListener('DOMContentLoaded', () => {
     const newTaskButton = document.querySelectorAll('.js-new-task-button');
     newTaskButton.forEach((button) => {
       button.addEventListener('click', (e) => {
-      const value= (e?.target as Element)?.closest('label')?.htmlFor;
-      const clickedStatus = value?.replace('task-', '');
-      if(!clickedStatus) return;
-        
+        const value = (e?.target as Element)?.closest('label')?.htmlFor;
+        const clickedStatus = value?.replace('task-', '');
+        if (!clickedStatus) return;
+
         (e?.target as Element)?.closest('div')?.appendChild(
           createModalHTML(
             taskListInstance.add({
@@ -183,31 +203,14 @@ import Column from './Column.astro';
               description: 'New Description',
               status: statusList[0],
             }),
-            clickedStatus
+            clickedStatus,
           ),
         );
       });
     });
   });
 
-  function updateTitle(id, newTitle) {
-    console.log('updateTitle', id, newTitle);
-    const task = taskListInstance.getTaskById(Number(id));
-    if (!task) return;
-    const update = taskListInstance.update(Number(id), { ...task, title: newTitle });
-    console.log('taskListInstance', taskListInstance.getTasks());
-  }
-
-  function updateContent(id, newContent) {
-    console.log(newContent);
-  }
-
-  function updateStatus(event) {
-    const newStatus = event.target.value;
-    console.log(newStatus);
-  }
-
-  document.addEventListener('DOMContentLoaded', () => {
+  function addEventListenerModal() {
     // title edit
     document.querySelectorAll('[id^=js-title-display]').forEach((titleDisplay) => {
       const taskId = titleDisplay.id.replace('js-title-display-', '');
@@ -223,30 +226,16 @@ import Column from './Column.astro';
 
       titleInput.addEventListener('blur', async (e) => {
         const newTitle = e.target?.value;
-        titleDisplay.textContent = newTitle;
         titleDisplay.classList.remove('hidden');
         titleInput.classList.add('hidden');
-        updateTitle(taskId, newTitle);
-        const task = taskListInstance.getTaskById(Number(taskId));
-        if (!task) return;
-        // タスクのタイトルを更新
-        const updatedTask = taskListInstance.update(Number(taskId), { title: newTitle });
-        console.log('Updated Task:', updatedTask);
-
-        // HTML上のタイトル要素（例:id="js-title-display-<task.id>"）を取得して書き換える
-        const titleElement = document.getElementById(`js-title-display-${taskId}`);
-        if (titleElement) {
-          titleElement.textContent = newTitle;
-        }
-        // const status = task.status;
-        // const container = document.querySelector(`#column-${status.key}`);
-        // console.log(taskListInstance.getTasksByStatus(status));
-        // container?.appendChild(createTaskCardHTML(task));
+        updateTitle(Number(taskId), newTitle);
       });
 
       titleInput.addEventListener('keydown', (e) => {
+        const newTitle = e.target?.value;
         if (e.key === 'Enter') {
           titleInput.blur();
+          updateTitle(Number(taskId), newTitle);
         }
       });
     });
@@ -264,15 +253,35 @@ import Column from './Column.astro';
         contentInput.focus();
       });
 
-      contentInput.addEventListener('blur', async (e) => {
-        const newContent = e.target?.value;
-        contentDisplay.textContent = newContent;
+      contentInput.addEventListener('blur', async (e: Event) => {
         contentDisplay.classList.remove('hidden');
         contentInput.classList.add('hidden');
-        updateContent(taskId, newContent);
+        updateContent(taskId, e.target?.value);
       });
     });
-  });
+  }
+
+  function updateTitle(id: number, newTitle: string) {
+    console.log('updateTitle', id, newTitle);
+    const task = taskListInstance.getTaskById(Number(id));
+    if (!task) return;
+    // タスクのタイトルを更新
+    const updatedTask = taskListInstance.update(Number(id), { title: newTitle });
+    // re-render
+    renderTaskCard();
+    renderModal();
+    addEventListenerModal();
+    console.log('Updated Task:', updatedTask);
+  }
+
+  function updateContent(id, newContent) {
+    console.log(newContent);
+  }
+
+  function updateStatus(event) {
+    const newStatus = event.target.value;
+    console.log(newStatus);
+  }
 
   // sample data
   taskListInstance.add({

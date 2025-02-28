@@ -191,7 +191,11 @@ import Column from './Column.astro';
   });
 
   function updateTitle(id, newTitle) {
-    console.log(newTitle);
+    console.log('updateTitle', id, newTitle);
+    const task = taskListInstance.getTaskById(Number(id));
+    if (!task) return;
+    const update = taskListInstance.update(Number(id), { ...task, title: newTitle });
+    console.log('taskListInstance', taskListInstance.getTasks());
   }
 
   function updateContent(id, newContent) {
@@ -223,6 +227,21 @@ import Column from './Column.astro';
         titleDisplay.classList.remove('hidden');
         titleInput.classList.add('hidden');
         updateTitle(taskId, newTitle);
+        const task = taskListInstance.getTaskById(Number(taskId));
+        if (!task) return;
+        // タスクのタイトルを更新
+        const updatedTask = taskListInstance.update(Number(taskId), { title: newTitle });
+        console.log('Updated Task:', updatedTask);
+
+        // HTML上のタイトル要素（例:id="js-title-display-<task.id>"）を取得して書き換える
+        const titleElement = document.getElementById(`js-title-display-${taskId}`);
+        if (titleElement) {
+          titleElement.textContent = newTitle;
+        }
+        // const status = task.status;
+        // const container = document.querySelector(`#column-${status.key}`);
+        // console.log(taskListInstance.getTasksByStatus(status));
+        // container?.appendChild(createTaskCardHTML(task));
       });
 
       titleInput.addEventListener('keydown', (e) => {

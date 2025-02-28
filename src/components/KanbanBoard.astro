@@ -128,7 +128,7 @@ import Column from './Column.astro';
 
   //modal
 
-  function createModalHTML(task: Task) {
+  function createModalHTML(task: Task, target: string) {
     const modal = document.createElement('div');
     modal.className = 'modal z-1000';
     modal.role = 'dialog';
@@ -181,7 +181,7 @@ import Column from './Column.astro';
               </div>
             </div>
           </div>
-          <label class="modal-backdrop" for="task-${task.id}"></label>
+          <label class="modal-backdrop" for="${target}-${task.id}"></label>
         `;
     return modal;
   }
@@ -190,7 +190,7 @@ import Column from './Column.astro';
       const taskList = taskListInstance.getTasksByStatus(status);
       taskList.forEach((task) => {
         const container = document.querySelector(`#task-${task.id}`);
-        container?.parentNode?.appendChild(createModalHTML(task));
+        container?.parentNode?.appendChild(createModalHTML(task, 'task'));
       });
     });
 
@@ -206,6 +206,7 @@ import Column from './Column.astro';
               description: 'New Description',
               status: statusList[0],
             }),
+            'task',
           ),
         );
       });
@@ -284,12 +285,13 @@ import Column from './Column.astro';
 
     function updateTaskList(query: string) {
       const filteredTasks = taskListInstance.getTasksByKeyword(query);
-      taskSuggestions.style.display = filteredTasks.length > 0 ? 'block' : 'none';
+      taskSuggestions.style.display =
+        filteredTasks.length > 0 || query.length > 0 ? 'block' : 'none';
 
       taskSuggestions.innerHTML = filteredTasks
         .map(
           (task: Task) => `
-            <li id="suggestion-${task.id}" class="task-item p-2 hover:bg-gray-200 cursor-pointer" data-index="${task.id}">
+            <li id="suggestion-${task.id}" class="suggestion-item p-2 hover:bg-gray-200 cursor-pointer" data-index="${task.id}">
               <label class="cursor-pointer" for="suggestion-modal-${task.id}">
                 <h2>${task.title}</h2>
                 <p>${task.description}</p>
@@ -299,16 +301,16 @@ import Column from './Column.astro';
           `,
         )
         .join('');
+      renderSuggestions();
+    }
 
-      document.querySelectorAll('.task-item').forEach((item) => {
-        item.addEventListener('click', (event: Event) => {
-          const target = event.currentTarget as HTMLElement;
-          const id = target.getAttribute('id')?.replace('suggestion-', '');
-          const task = taskListInstance.getTaskById(Number(id));
-          // if (!task) return;
-          // const modal = createModalHTML(task);
-          // target.appendChild(modal);
-        });
+    function renderSuggestions() {
+      document.querySelectorAll('.suggestion-item').forEach((item) => {
+        const id = item.getAttribute('id')?.replace('suggestion-', '');
+        const task = taskListInstance.getTaskById(Number(id));
+        if (!task) return;
+        const modal = createModalHTML(task, 'suggestion-modal');
+        item.appendChild(modal);
       });
     }
 
@@ -317,7 +319,20 @@ import Column from './Column.astro';
       updateTaskList(query);
     }
 
+    function closeSuggestions() {
+      setTimeout(() => {
+        if (
+          document.activeElement !== searchInput &&
+          !taskSuggestions.contains(document.activeElement)
+        ) {
+          taskSuggestions.style.display = 'none';
+        }
+      }, 100);
+    }
+
     searchInput.addEventListener('input', handleSearch);
+    searchInput.addEventListener('focusout', closeSuggestions);
+    taskSuggestions.addEventListener('focusout', closeSuggestions);
   });
 
   // sample data

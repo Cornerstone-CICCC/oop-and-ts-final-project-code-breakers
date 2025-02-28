@@ -2,14 +2,11 @@
 import type { Task, statusType } from '../types/task';
 import Taskcard from './Taskcard.astro';
 import Modal from './Modal.astro';
-
 interface Props {
   status: statusType;
   taskList: Task[];
 }
-
 const { status, taskList } = Astro.props;
-
 const newTask: Task = {
   id: 401,
   title: 'New Task',
@@ -29,8 +26,13 @@ const newTask: Task = {
       <Modal task={newTask} hideStatus={true} />
     </div>
   </div>
-  <div class="flex flex-col gap-4">
-    {taskList.map((task) => <Taskcard task={task} />)}
+  <div
+    class="flex flex-col gap-4 min-h-[200px] task-container"
+    data-column-index={status.key}
+    ondrop="dropTask(event)"
+    ondragover="allowDrop(event)"
+  >
+    {taskList.map((task, index) => <Taskcard task={task} taskId={`task-${status.key}-${index}`} />)}
   </div>
 </div>
 

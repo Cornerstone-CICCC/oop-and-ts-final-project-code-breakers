@@ -1,8 +1,6 @@
 ---
-import type { Task, statusType } from '../types/task';
-import { statusList } from '../lib/TaskList';
+import type { statusType } from '../types/task';
 import Taskcard from './Taskcard.astro';
-import Modal from './Modal.astro';
 
 interface Props {
   status: statusType;
@@ -25,27 +23,6 @@ const { status } = Astro.props;
 </div>
 
 <script>
-  import { taskListInstance, statusList } from '../lib/TaskList';
-
-  //new modal
-  document.addEventListener('DOMContentLoaded', () => {
-    statusList.forEach((status) => {
-      const taskList = taskListInstance.getTasksByStatus(status);
-      taskList.forEach((task) => {
-        const container = document.querySelector(`#task-${task.id}`);
-        const modal = document.createElement('div');
-        modal.className = 'modal z-1000';
-        modal.role = 'dialog';
-        modal.id = `modal-${task.id}`;
-
-        modal.innerHTML = `
-          
-        `;
-        container?.parentNode?.appendChild(modal);
-      });
-    });
-  });
-
   document.querySelectorAll('button[data-column]').forEach((button) => {
     button.addEventListener('click', () => {
       const taskTypeKey = button.getAttribute('data-column');

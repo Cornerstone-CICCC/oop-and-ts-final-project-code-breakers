@@ -1,45 +1,31 @@
 ---
-import type { Task, statusType } from '../types/task';
+import type { statusType } from '../types/task';
 import Taskcard from './Taskcard.astro';
-import Modal from './Modal.astro';
 
 interface Props {
   status: statusType;
-  taskList: Task[];
 }
 
-const {status,taskList} = Astro.props;
-
-const newTask: Task = {
-  id: 401,
-  title: "New Task",
-  description: "This is a new task.",
-  status: status,
-};
+const { status } = Astro.props;
 ---
 
 <div class="bg-slate-100 rounded-lg p-4">
   <div class="flex justify-between items-center mb-4">
     <h2 class="text-base font-semibold">{status.value}</h2>
     <div class="flex gap-2">
-      <label for={`task-${newTask.id}`} class="cursor-pointer">
+      <label for={`task-${status.key}`} class="js-new-task-button cursor-pointer">
         <i class="fa-solid fa-plus"></i>
       </label>
-      <input type="checkbox" id={`task-${newTask.id}`} class="modal-toggle" />  
-      <Modal task={newTask} hideStatus={true} />
+      <input type="checkbox" id={`task-${status.key}`} class="modal-toggle" />
     </div>
   </div>
-  <div class="flex flex-col gap-4">
-    {taskList.map((task) => (
-      <Taskcard task={task} />
-    ))}
-  </div>
+  <Taskcard status={status} />
 </div>
 
 <script>
-  document.querySelectorAll("button[data-column]").forEach((button) => {
-    button.addEventListener("click", () => {
-      const taskTypeKey = button.getAttribute("data-column");
+  document.querySelectorAll('button[data-column]').forEach((button) => {
+    button.addEventListener('click', () => {
+      const taskTypeKey = button.getAttribute('data-column');
       if (taskTypeKey) {
         const modal = document.querySelector(`#modal-${taskTypeKey}`);
         if (modal instanceof HTMLDialogElement) {

@@ -8,12 +8,12 @@ interface Props {
   taskList: Task[];
 }
 
-const {status,taskList} = Astro.props;
+const { status, taskList } = Astro.props;
 
 const newTask: Task = {
   id: 401,
-  title: "New Task",
-  description: "This is a new task.",
+  title: 'New Task',
+  description: 'This is a new task.',
   status: status,
 };
 ---
@@ -25,21 +25,19 @@ const newTask: Task = {
       <label for={`task-${newTask.id}`} class="cursor-pointer">
         <i class="fa-solid fa-plus"></i>
       </label>
-      <input type="checkbox" id={`task-${newTask.id}`} class="modal-toggle" />  
+      <input type="checkbox" id={`task-${newTask.id}`} class="modal-toggle" />
       <Modal task={newTask} hideStatus={true} />
     </div>
   </div>
   <div class="flex flex-col gap-4">
-    {taskList.map((task) => (
-      <Taskcard task={task} />
-    ))}
+    {taskList.map((task) => <Taskcard task={task} />)}
   </div>
 </div>
 
 <script>
-  document.querySelectorAll("button[data-column]").forEach((button) => {
-    button.addEventListener("click", () => {
-      const taskTypeKey = button.getAttribute("data-column");
+  document.querySelectorAll('button[data-column]').forEach((button) => {
+    button.addEventListener('click', () => {
+      const taskTypeKey = button.getAttribute('data-column');
       if (taskTypeKey) {
         const modal = document.querySelector(`#modal-${taskTypeKey}`);
         if (modal instanceof HTMLDialogElement) {

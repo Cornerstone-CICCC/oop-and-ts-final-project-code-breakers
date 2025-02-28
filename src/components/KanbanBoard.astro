@@ -1,88 +1,134 @@
 ---
 import type { Task } from '../types/task';
 import { statusList } from '../types/task';
-import Column from "./Column.astro";
+import Column from './Column.astro';
 
 const todoTasks: Task[] = [
   {
     id: 101,
-    title: "Plan Weekly Team Meeting",
-    description: "Prepare agenda and send out meeting invite.",
-    status: { key: "todo", value: "To do" },
+    title: 'Plan Weekly Team Meeting',
+    description: 'Prepare agenda and send out meeting invite.',
+    status: { key: 'todo', value: 'To do' },
   },
   {
     id: 102,
-    title: "Review Project Documentation",
-    description: "Check the latest version of the project documentation for accuracy.",
-    status: { key: "todo", value: "To do" },
+    title: 'Review Project Documentation',
+    description: 'Check the latest version of the project documentation for accuracy.',
+    status: { key: 'todo', value: 'To do' },
   },
   {
     id: 103,
-    title: "Setup Development Environment",
-    description: "Install necessary tools and configure environment for new project.",
-    status: { key: "todo", value: "To do" },
+    title: 'Setup Development Environment',
+    description: 'Install necessary tools and configure environment for new project.',
+    status: { key: 'todo', value: 'To do' },
   },
 ];
 
 const inProgressTasks: Task[] = [
   {
     id: 201,
-    title: "Develop User Authentication Feature",
-    description: "Implement secure user login and registration functionality.",
-    status: { key: "in-progress", value: "In Progress" },
+    title: 'Develop User Authentication Feature',
+    description: 'Implement secure user login and registration functionality.',
+    status: { key: 'in-progress', value: 'In Progress' },
   },
   {
     id: 202,
-    title: "Design Database Schema",
-    description: "Create the database schema for the new application.",
-    status: { key: "in-progress", value: "In Progress" },
+    title: 'Design Database Schema',
+    description: 'Create the database schema for the new application.',
+    status: { key: 'in-progress', value: 'In Progress' },
   },
   {
     id: 203,
-    title: "Write Unit Tests for API Endpoints",
-    description: "Develop comprehensive unit tests for all API endpoints.",
-    status: { key: "in-progress", value: "In Progress" },
+    title: 'Write Unit Tests for API Endpoints',
+    description: 'Develop comprehensive unit tests for all API endpoints.',
+    status: { key: 'in-progress', value: 'In Progress' },
   },
 ];
 
 const doneTasks: Task[] = [
   {
     id: 301,
-    title: "Complete UI Design Mockups",
-    description: "Finalize the UI design mockups for the landing page.",
-    status: { key: "done", value: "Done" },
+    title: 'Complete UI Design Mockups',
+    description: 'Finalize the UI design mockups for the landing page.',
+    status: { key: 'done', value: 'Done' },
   },
   {
     id: 302,
-    title: "Deploy Backend Service to Production",
-    description: "Deploy the latest version of the backend service to the production server.",
-    status: { key: "done", value: "Done" },
+    title: 'Deploy Backend Service to Production',
+    description: 'Deploy the latest version of the backend service to the production server.',
+    status: { key: 'done', value: 'Done' },
   },
 ];
-
-
 ---
 
 <div class="p-8 font-sans">
-  <div
-    class="md:grid md:grid-cols-3 md:gap-6 flex gap-6 overflow-x-auto pb-4 snap-x"
-  >
-  {
-    statusList.map((status) => {
-      let taskList: Task[] = [];
-      if (status.key === "todo") {
-        taskList = todoTasks;
-      } else if (status.key === "in-progress") {
-        taskList = inProgressTasks;
-      } else if (status.key === "done") {
-        taskList = doneTasks;
-      }
-      return (
-        <div class="min-w-[85vw] md:min-w-0 snap-center">
-          <Column status={status} taskList={taskList} />
-        </div>
-      );
-    })
-  }
+  <div class="md:grid md:grid-cols-3 md:gap-6 flex gap-6 overflow-x-auto pb-4 snap-x">
+    {
+      statusList.map((status) => {
+        let taskList: Task[] = [];
+        if (status.key === 'todo') {
+          taskList = todoTasks;
+        } else if (status.key === 'in-progress') {
+          taskList = inProgressTasks;
+        } else if (status.key === 'done') {
+          taskList = doneTasks;
+        }
+        return (
+          <div class="min-w-[85vw] md:min-w-0 snap-center">
+            <Column status={status} taskList={taskList} />
+          </div>
+        );
+      })
+    }
   </div>
 </div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const tasks = document.querySelectorAll('[data-task-id]');
+    tasks.forEach((task) => {
+      task.addEventListener('dragstart', dragStart);
+      task.addEventListener('dragend', dragEnd);
+    });
+  });
+
+  function dragStart(event) {
+    const taskCard = event.target.closest('.task-card');
+    if (!taskCard) return;
+
+    event.dataTransfer.setData('text/plain', taskCard.id);
+    event.dataTransfer.effectAllowed = 'move';
+
+    setTimeout(() => {
+      taskCard.classList.add('opacity-50');
+    }, 0);
+  }
+
+  function dragEnd(event) {
+    event.target.classList.remove('opacity-50');
+  }
+
+  window.allowDrop = (event) => {
+    event.preventDefault();
+  };
+
+  window.dropTask = (event) => {
+    event.preventDefault();
+
+    const taskId = event.dataTransfer.getData('text/plain');
+    const draggedTask = document.getElementById(taskId);
+
+    if (!draggedTask) return;
+
+    draggedTask.classList.remove('opacity-50');
+
+    const dropContainer = event.target.closest('.task-container');
+    if (!dropContainer) return;
+
+    dropContainer.appendChild(draggedTask);
+
+    console.log(
+      `Task ${taskId} moved to column ${dropContainer.getAttribute('data-column-index')}`,
+    );
+  };
+</script>

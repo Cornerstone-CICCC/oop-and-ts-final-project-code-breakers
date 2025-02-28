@@ -1,41 +1,54 @@
 ---
-import type { Task } from '../lib/TaskList';
-import type { Status } from '../lib/TaskList';
+import type { Task, statusType } from '../types/task';
+import { statusList } from '../lib/TaskList';
 import Taskcard from './Taskcard.astro';
 import Modal from './Modal.astro';
 
 interface Props {
-  status: Status;
+  status: statusType;
 }
 
-const {status} = Astro.props;
-
-const newTask: Task = {
-  id: 401,
-  title: "New Task",
-  description: "This is a new task.",
-  status: status,
-};
+const { status } = Astro.props;
 ---
 
 <div class="bg-slate-100 rounded-lg p-4">
   <div class="flex justify-between items-center mb-4">
     <h2 class="text-base font-semibold">{status.value}</h2>
     <div class="flex gap-2">
-      <label for={`task-${newTask.id}`} class="cursor-pointer">
+      <label for={`task-${status.key}`} class="js-new-task-button cursor-pointer">
         <i class="fa-solid fa-plus"></i>
       </label>
-      <input type="checkbox" id={`task-${newTask.id}`} class="modal-toggle" />  
-      <Modal task={newTask} hideStatus={true} />
+      <input type="checkbox" id={`task-${status.key}`} class="modal-toggle" />
     </div>
   </div>
-  <Taskcard status={status}/>
+  <Taskcard status={status} />
 </div>
 
 <script>
-  document.querySelectorAll("button[data-column]").forEach((button) => {
-    button.addEventListener("click", () => {
-      const taskTypeKey = button.getAttribute("data-column");
+  import { taskListInstance, statusList } from '../lib/TaskList';
+
+  //new modal
+  document.addEventListener('DOMContentLoaded', () => {
+    statusList.forEach((status) => {
+      const taskList = taskListInstance.getTasksByStatus(status);
+      taskList.forEach((task) => {
+        const container = document.querySelector(`#task-${task.id}`);
+        const modal = document.createElement('div');
+        modal.className = 'modal z-1000';
+        modal.role = 'dialog';
+        modal.id = `modal-${task.id}`;
+
+        modal.innerHTML = `
+          
+        `;
+        container?.parentNode?.appendChild(modal);
+      });
+    });
+  });
+
+  document.querySelectorAll('button[data-column]').forEach((button) => {
+    button.addEventListener('click', () => {
+      const taskTypeKey = button.getAttribute('data-column');
       if (taskTypeKey) {
         const modal = document.querySelector(`#modal-${taskTypeKey}`);
         if (modal instanceof HTMLDialogElement) {

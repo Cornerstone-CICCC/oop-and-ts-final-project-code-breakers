@@ -159,8 +159,6 @@ import Column from './Column.astro';
       taskList.forEach((task) => {
         const container = document.querySelector(`#task-${task.id}`);
         container?.parentNode?.appendChild(createModalHTML(task, task.id));
-        // this is comfliting with the above code
-        // temporary comment out
         const parentElement = container?.parentNode as Element | null;
         if (!container || !parentElement) return;
         parentElement.querySelector('div.modal')?.remove();

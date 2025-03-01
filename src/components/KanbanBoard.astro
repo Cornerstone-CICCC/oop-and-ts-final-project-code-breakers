@@ -128,7 +128,7 @@ import Column from './Column.astro';
 
   //modal
 
-  function createModalHTML(task: Task, target: string) {
+  function createModalHTML(task: Task, id: string | number, target: string) {
     const modal = document.createElement('div');
     modal.className = 'modal z-1000';
     modal.role = 'dialog';
@@ -137,12 +137,12 @@ import Column from './Column.astro';
           <div class="modal-box flex flex-col gap-3">
             <h3 class="text-lg">
               <div
-                id="js-title-display-${task.id}"
+                id="js-title-display-${id}"
                 class="cursor-pointer font-bold px-4 rounded-lg leading-[3rem] hover:bg-gray-50">
                 ${task.title}
               </div>
               <input
-                id="js-title-input-${task.id}"
+                id="js-title-input-${id}"
                 type="text"
                 value=${task.title}
                 class="hidden input input-bordered w-full p-4 text-lg leading-[3rem]"
@@ -150,12 +150,12 @@ import Column from './Column.astro';
             </h3>
             <div class="h-32 flex grow">
               <p
-                id="js-content-display-${task.id}"
+                id="js-content-display-${id}"
                 class="size-full p-4 overflow-x-scroll rounded-lg hover:bg-gray-50">
                 ${task.description}
               </p>
               <textarea
-                id="js-content-input-${task.id}"
+                id="js-content-input-${id}"
                 class="hidden input input-bordered size-full p-4 text-base"
                 rows="5">${task.description}</textarea
               >
@@ -163,7 +163,7 @@ import Column from './Column.astro';
               <div class="w-full max-w-xs">
                 <div class="relative">
                   <select
-                    id="js-content-select-${task.id}"
+                    id="js-content-select-${id}"
                     name="task-status"
                     class="select select-bordered w-full pl-4 py-2"
                     onchange="updateStatus(event)">
@@ -190,14 +190,16 @@ import Column from './Column.astro';
       const taskList = taskListInstance.getTasksByStatus(status);
       taskList.forEach((task) => {
         const container = document.querySelector(`#task-${task.id}`);
-        container?.parentNode?.appendChild(createModalHTML(task, 'task'));
+        container?.parentNode?.appendChild(createModalHTML(task, task.id, 'task'));
       });
     });
 
     const newTaskButton = document.querySelectorAll('.js-new-task-button');
     newTaskButton.forEach((button) => {
       button.addEventListener('click', (e) => {
-        const clickedStatus = (e?.target as Element)?.closest('label')?.getAttribute('for');
+        const value = (e?.target as Element)?.closest('label')?.htmlFor;
+        const clickedStatus = value?.replace('task-', '');
+        if (!clickedStatus) return;
 
         (e?.target as Element)?.closest('div')?.appendChild(
           createModalHTML(
@@ -206,6 +208,7 @@ import Column from './Column.astro';
               description: 'New Description',
               status: statusList[0],
             }),
+            clickedStatus,
             'task',
           ),
         );
@@ -309,7 +312,7 @@ import Column from './Column.astro';
         const id = item.getAttribute('id')?.replace('suggestion-', '');
         const task = taskListInstance.getTaskById(Number(id));
         if (!task) return;
-        const modal = createModalHTML(task, 'suggestion-modal');
+        const modal = createModalHTML(task, Number(id), 'suggestion-modal');
         item.appendChild(modal);
       });
     }

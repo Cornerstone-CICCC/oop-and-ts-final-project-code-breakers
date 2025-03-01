@@ -3,6 +3,31 @@ import { statusList } from '../lib/TaskList';
 import Column from './Column.astro';
 ---
 
+<header>
+  <div class="flex flex-col md:flex-row justify-between items-center p-4 gap-4">
+    <h1 class="text-2xl font-bold">Kanbanaza</h1>
+    <div class="search-area">
+      <label class="input input-bordered flex items-center gap-2 w-[350px]">
+        <input type="text" class="grow" placeholder="Search" id="searchInput" />
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 16 16"
+          fill="currentColor"
+          class="h-4 w-4 opacity-70">
+          <path
+            fill-rule="evenodd"
+            d="M9.965 11.026a5 5 0 1 1 1.06-1.06l2.755 2.754a.75.75 0 1 1-1.06 1.06l-2.755-2.754ZM10.5 7a3.5 3.5 0 1 1-7 0 3.5 3.5 0 0 1 7 0Z"
+            clip-rule="evenodd"></path>
+        </svg>
+      </label>
+      <ul
+        id="taskSuggestions"
+        class="mt-2 w-auto bg-white shadow-md rounded-md absolute z-10"
+        style="display: none;">
+      </ul>
+    </div>
+  </div>
+</header>
 <div class="p-8 font-sans">
   <div class="md:grid md:grid-cols-3 md:gap-6 flex gap-6 overflow-x-auto pb-4 snap-x">
     {
@@ -103,7 +128,7 @@ import Column from './Column.astro';
 
   //modal
 
-  function createModalHTML(task: Task, id: string|number) {
+  function createModalHTML(task: Task, id: string | number, target: string) {
     const modal = document.createElement('div');
     modal.className = 'modal z-1000';
     modal.role = 'dialog';
@@ -156,7 +181,7 @@ import Column from './Column.astro';
               </div>
             </div>
           </div>
-          <label class="modal-backdrop" for="task-${id}"></label>
+          <label class="modal-backdrop" for="${target}-${task.id}"></label>
         `;
     return modal;
   }
@@ -165,17 +190,17 @@ import Column from './Column.astro';
       const taskList = taskListInstance.getTasksByStatus(status);
       taskList.forEach((task) => {
         const container = document.querySelector(`#task-${task.id}`);
-        container?.parentNode?.appendChild(createModalHTML(task,task.id));
+        container?.parentNode?.appendChild(createModalHTML(task, task.id, 'task'));
       });
     });
 
     const newTaskButton = document.querySelectorAll('.js-new-task-button');
     newTaskButton.forEach((button) => {
       button.addEventListener('click', (e) => {
-      const value= (e?.target as Element)?.closest('label')?.htmlFor;
-      const clickedStatus = value?.replace('task-', '');
-      if(!clickedStatus) return;
-        
+        const value = (e?.target as Element)?.closest('label')?.htmlFor;
+        const clickedStatus = value?.replace('task-', '');
+        if (!clickedStatus) return;
+
         (e?.target as Element)?.closest('div')?.appendChild(
           createModalHTML(
             taskListInstance.add({
@@ -183,7 +208,8 @@ import Column from './Column.astro';
               description: 'New Description',
               status: statusList[0],
             }),
-            clickedStatus
+            clickedStatus,
+            'task',
           ),
         );
       });
@@ -253,6 +279,63 @@ import Column from './Column.astro';
         updateContent(taskId, newContent);
       });
     });
+  });
+
+  // Header
+  document.addEventListener('DOMContentLoaded', () => {
+    const searchInput = document.getElementById('searchInput') as HTMLInputElement;
+    const taskSuggestions = document.getElementById('taskSuggestions') as HTMLUListElement;
+
+    function updateTaskList(query: string) {
+      const filteredTasks = taskListInstance.getTasksByKeyword(query);
+      taskSuggestions.style.display =
+        filteredTasks.length > 0 || query.length > 0 ? 'block' : 'none';
+
+      taskSuggestions.innerHTML = filteredTasks
+        .map(
+          (task: Task) => `
+            <li id="suggestion-${task.id}" class="suggestion-item p-2 hover:bg-gray-200 cursor-pointer" data-index="${task.id}">
+              <label class="cursor-pointer" for="suggestion-modal-${task.id}">
+                <h2>${task.title}</h2>
+                <p>${task.description}</p>
+              </label>
+              <input type="checkbox" id="suggestion-modal-${task.id}" class="modal-toggle" />
+            </li>
+          `,
+        )
+        .join('');
+      renderSuggestions();
+    }
+
+    function renderSuggestions() {
+      document.querySelectorAll('.suggestion-item').forEach((item) => {
+        const id = item.getAttribute('id')?.replace('suggestion-', '');
+        const task = taskListInstance.getTaskById(Number(id));
+        if (!task) return;
+        const modal = createModalHTML(task, Number(id), 'suggestion-modal');
+        item.appendChild(modal);
+      });
+    }
+
+    function handleSearch() {
+      const query = searchInput.value.trim();
+      updateTaskList(query);
+    }
+
+    function closeSuggestions() {
+      setTimeout(() => {
+        if (
+          document.activeElement !== searchInput &&
+          !taskSuggestions.contains(document.activeElement)
+        ) {
+          taskSuggestions.style.display = 'none';
+        }
+      }, 100);
+    }
+
+    searchInput.addEventListener('input', handleSearch);
+    searchInput.addEventListener('focusout', closeSuggestions);
+    taskSuggestions.addEventListener('focusout', closeSuggestions);
   });
 
   // sample data

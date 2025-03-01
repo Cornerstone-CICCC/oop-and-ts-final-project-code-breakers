@@ -54,6 +54,14 @@ export class TaskList {
   getTasksByStatus(status: Status): Task[] {
     return this.tasks.filter((task) => task.status.key === status.key);
   }
+
+  getTasksByKeyword(keyWord: string): Task[] {
+    return this.tasks.filter(
+      (task) =>
+        task.title.toLowerCase().includes(keyWord.toLowerCase()) ||
+        task.description.toLowerCase().includes(keyWord.toLowerCase()),
+    );
+  }
 }
 
 export const taskListInstance = new TaskList();

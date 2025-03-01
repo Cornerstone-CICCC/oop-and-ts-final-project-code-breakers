@@ -61,25 +61,7 @@ import Column from './Column.astro';
               <div class="card-body p-4">
                 <div class="flex justify-between items-start">
                   <h2 class="font-bold text-lg text-gray-800 mb-2">${task.title}</h2>
-                  <details id="dropdown-${task.id}" class="dropdown">
-                    <summary class="btn border-none bg-transparent shadow-none">
-                      <i class="fa-solid fa-ellipsis text-black"></i>
-                    </summary>
-                    <ul class="menu dropdown-content bg-white text-black rounded-box z-1 w-28 p-2 shadow-sm">
-                      <li>
-                        <button onclick='console.log("Edit button clicked")'>
-                          <i class="fa-solid fa-pen"></i>
-                          Edit
-                        </button>
-                      </li>
-                      <li>
-                        <button onclick='console.log("Delete Button clicked")'>
-                          <i class="fa-solid fa-trash"></i>
-                          Delete
-                        </button>
-                      </li>
-                    </ul>
-                  </details>
+                  <i class="fa-solid fa-trash delete-task-icon" data-taskid="${task.id}"></i>
                 </div>
                 <p class="text-gray-600 text-sm mb-3">${task.description}</p>
               </div>
@@ -88,6 +70,14 @@ import Column from './Column.astro';
           <input type="checkbox" id="task-${task.id}" class="modal-toggle" />
         </div>
       `;
+    // delete task
+    const trashIcon = taskCard.querySelector('.delete-task-icon');
+    if (trashIcon) {
+      trashIcon.addEventListener('click', () => {
+        taskListInstance.delete(task.id);
+        renderTaskCard();
+      });
+    }
     return taskCard;
   }
   function renderTaskCard() {
@@ -143,8 +133,7 @@ import Column from './Column.astro';
                   <select
                     id="js-content-select-${id}"
                     name="task-status"
-                    class="select select-bordered w-full pl-4 py-2"
-                    onchange="updateStatus(event)">
+                    class="select select-bordered w-full pl-4 py-2">
                     ${statusList
                       .map(
                         (status) => `
@@ -172,10 +161,10 @@ import Column from './Column.astro';
         container?.parentNode?.appendChild(createModalHTML(task, task.id));
         // this is comfliting with the above code
         // temporary comment out
-        // const parentElement = container?.parentNode as Element | null;
-        // if (!container || !parentElement) return;
-        // parentElement.querySelector('div.modal')?.remove();
-        // parentElement.appendChild(createModalHTML(task));
+        const parentElement = container?.parentNode as Element | null;
+        if (!container || !parentElement) return;
+        parentElement.querySelector('div.modal')?.remove();
+        parentElement.appendChild(createModalHTML(task, task.id));
       });
     });
   }
@@ -261,11 +250,17 @@ import Column from './Column.astro';
     });
   }
 
+  document.addEventListener('change', (e) => {
+    if (!(e.target instanceof HTMLSelectElement)) return;
+    if (!e.target.id.startsWith('js-content-select-')) return;
+    updateStatus(e);
+  });
+
   function updateTitle(id: number, newTitle: string) {
     console.log('updateTitle', id, newTitle);
     const task = taskListInstance.getTaskById(Number(id));
     if (!task) return;
-    // タスクのタイトルを更新
+    // update the title of the task
     const updatedTask = taskListInstance.update(Number(id), { title: newTitle });
     // re-render
     renderTaskCard();
@@ -275,12 +270,32 @@ import Column from './Column.astro';
   }
 
   function updateContent(id, newContent) {
-    console.log(newContent);
+    console.log('updateContent', id, newContent);
+    const task = taskListInstance.getTaskById(Number(id));
+    if (!task) return;
+    // update the content of the task
+    const updatedTask = taskListInstance.update(Number(id), { description: newContent });
+    // re-render
+    renderTaskCard();
+    renderModal();
+    addEventListenerModal();
+    console.log('Updated Task:', updatedTask);
   }
 
   function updateStatus(event) {
     const newStatus = event.target.value;
-    console.log(newStatus);
+    const taskId = event.target.id.replace('js-content-select-', '');
+    const task = taskListInstance.getTaskById(Number(taskId));
+    if (!task) return;
+    // update the status of the task
+    const updatedTask = taskListInstance.update(Number(taskId), {
+      status: statusList.find((status) => status.key === newStatus),
+    });
+    // re-render
+    renderTaskCard();
+    renderModal();
+    addEventListenerModal();
+    console.log('Updated Task:', updatedTask);
   }
 
   // sample data

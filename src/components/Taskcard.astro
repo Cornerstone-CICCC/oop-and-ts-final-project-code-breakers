@@ -3,7 +3,14 @@
 const { status } = Astro.props;
 ---
 
-<div id={`column-${status.key}`} class="flex flex-col gap-4"></div>
+<div
+  id={`column-${status.key}`}
+  class="flex flex-col gap-4 min-h-[200px] task-container"
+  data-column-index={status.key}
+  ondrop="dropTask(event)"
+  ondragover="allowDrop(event)"
+>
+</div>
 
 <script>
   document.addEventListener('click', function (e: MouseEvent) {

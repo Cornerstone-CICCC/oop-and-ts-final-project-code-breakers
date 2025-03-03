@@ -1,41 +1,35 @@
 ---
-import { statusList } from '../lib/TaskList';
 import Column from './Column.astro';
+import SearchBar from './SearchBar.astro';
+import { type ColumnData, TEAM_MEMBERS } from '../types';
+
+const columns: ColumnData[] = [
+  {
+    title: 'To do',
+    tasks: [],
+  },
+  {
+    title: 'In progress',
+    tasks: [],
+  },
+  {
+    title: 'Done',
+    tasks: [],
+  },
+];
 ---
 
-<header>
-  <div class="flex flex-col md:flex-row justify-between items-center p-4 gap-4">
-    <h1 class="text-2xl font-bold">Kanbanaza</h1>
-    <div class="search-area">
-      <label class="input input-bordered flex items-center gap-2 w-[350px]">
-        <input type="text" class="grow" placeholder="Search" id="searchInput" />
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          viewBox="0 0 16 16"
-          fill="currentColor"
-          class="h-4 w-4 opacity-70"
-        >
-          <path
-            fill-rule="evenodd"
-            d="M9.965 11.026a5 5 0 1 1 1.06-1.06l2.755 2.754a.75.75 0 1 1-1.06 1.06l-2.755-2.754ZM10.5 7a3.5 3.5 0 1 1-7 0 3.5 3.5 0 0 1 7 0Z"
-            clip-rule="evenodd"></path>
-        </svg>
-      </label>
-      <ul
-        id="taskSuggestions"
-        class="mt-2 w-auto bg-white shadow-md rounded-md absolute z-10"
-        style="display: none;"
-      >
-      </ul>
-    </div>
-  </div>
-</header>
 <div class="p-8 font-sans">
+  <div class="flex justify-between items-center mb-8">
+    <h1 class="text-2xl font-semibold">Kanbanaza</h1>
+    <SearchBar />
+  </div>
+
   <div class="md:grid md:grid-cols-3 md:gap-6 flex gap-6 overflow-x-auto pb-4 snap-x">
     {
-      statusList.map((status) => (
+      columns.map((column, index) => (
         <div class="min-w-[85vw] md:min-w-0 snap-center">
-          <Column status={status} />
+          <Column data={column} columnIndex={index} />
         </div>
       ))
     }
@@ -43,122 +37,29 @@ import Column from './Column.astro';
 </div>
 
 <script>
-  import { taskListInstance, statusList } from '../lib/TaskList';
-  import type { Task } from '../types/task';
-
-  //kanban-board
-  document.addEventListener('DOMContentLoaded', () => {
-    const container = document.querySelector('#kanban-board');
-    statusList.forEach((status) => {
-      const taskList = taskListInstance.getTasksByStatus(status);
-      const columnDiv = document.createElement('div');
-      columnDiv.className = 'min-w-[85vw] md:min-w-0 snap-center';
-
-      const columnContent = `
-        <div class="column">
-          <h2>${status}</h2>
-          <ul>
-            ${taskList
-              .map(
-                (task) => `
-              <li>
-                <h3>${task.title}</h3>
-                <p>${task.description}</p>
-              </li>
-            `,
-              )
-              .join('')}
-          </ul>
-        </div>
-      `;
-
-      columnDiv.innerHTML = columnContent;
-      container?.appendChild(columnDiv);
-    });
-  });
-
-  //task card
-  function createTaskCardHTML(task: Task) {
-    const taskCard = document.createElement('div');
-    taskCard.innerHTML = `
-        <div id="task-id-${task.id}" class="task-card" data-task-id="${task.id}">
-          <label draggable="true" for="task-${task.id}" class="cursor-pointer">
-            <div class="card bg-white shadow-md">
-              <div class="card-body p-4">
-                <div class="flex justify-between items-start">
-                  <h2 class="font-bold text-lg text-gray-800 mb-2">${task.title}</h2>
-                  <details id="dropdown-${task.id}" class="dropdown">
-                    <summary class="btn border-none bg-transparent shadow-none">
-                      <i class="fa-solid fa-ellipsis text-black"></i>
-                    </summary>
-                    <ul class="menu dropdown-content bg-white text-black rounded-box z-1 w-28 p-2 shadow-sm">
-                      <li>
-                        <button onclick='console.log("Edit button clicked")'>
-                          <i class="fa-solid fa-pen"></i>
-                          Edit
-                        </button>
-                      </li>
-                      <li>
-                        <button onclick='console.log("Delete Button clicked")'>
-                          <i class="fa-solid fa-trash"></i>
-                          Delete
-                        </button>
-                      </li>
-                    </ul>
-                  </details>
-                </div>
-                <p class="text-gray-600 text-sm mb-3">${task.description}</p>
-              </div>
-            </div>
-          </label>
-          <input type="checkbox" id="task-${task.id}" class="modal-toggle" />
-        </div>
-      `;
-    return taskCard;
-  }
-  document.addEventListener('DOMContentLoaded', () => {
-    statusList.forEach((status) => {
-      const container = document.querySelector(`#column-${status.key}`);
-      const taskList = taskListInstance.getTasksByStatus(status);
-      console.log(taskListInstance.getTasksByStatus(status));
-
-      taskList.forEach((task) => {
-        container?.appendChild(createTaskCardHTML(task));
-      });
-    });
-  });
-
   document.addEventListener('DOMContentLoaded', () => {
     const tasks = document.querySelectorAll('[data-task-id]');
     tasks.forEach((task) => {
       task.addEventListener('dragstart', dragStart);
-      task.addEventListener('dragend', dragEnd);
     });
   });
 
-  // drag and drop
   function dragStart(event) {
-    const taskCard = event.target.closest('.task-card');
-    if (!taskCard) return;
+    if (event.target.hasAttribute('data-task-id')) {
+      event.dataTransfer.setData('text/plain', event.target.getAttribute('data-task-id'));
+      event.dataTransfer.effectAllowed = 'move';
 
-    event.dataTransfer.setData('text/plain', taskCard.id);
-    event.dataTransfer.effectAllowed = 'move';
-
-    setTimeout(() => {
-      taskCard.classList.add('opacity-50');
-    }, 0);
+      setTimeout(() => {
+        event.target.classList.add('opacity-50');
+      }, 0);
+    }
   }
 
-  function dragEnd(event) {
-    event.target.classList.remove('opacity-50');
-  }
-
-  window.allowDrop = (event) => {
-    console.log('allowDrop');
+  window.allowDrop = function (event) {
     event.preventDefault();
   };
 
-  window.dropTask = (event) => {
+  window.dropTask = function (event) {
     event.preventDefault();
 
     const taskId = event.dataTransfer.getData('text/plain');
@@ -169,7 +70,6 @@ import Column from './Column.astro';
     draggedTask.classList.remove('opacity-50');
 
     const dropContainer = event.target.closest('.task-container');
-    console.log(dropContainer);
     if (!dropContainer) return;
 
     dropContainer.appendChild(draggedTask);
@@ -178,233 +78,4 @@ import Column from './Column.astro';
       `Task ${taskId} moved to column ${dropContainer.getAttribute('data-column-index')}`,
     );
   };
-
-  //modal
-
-  function createModalHTML(task: Task, id: string | number, target: string) {
-    const modal = document.createElement('div');
-    modal.className = 'modal z-1000';
-    modal.role = 'dialog';
-
-    modal.innerHTML = `
-          <div class="modal-box flex flex-col gap-3">
-            <h3 class="text-lg">
-              <div
-                id="js-title-display-${id}"
-                class="cursor-pointer font-bold px-4 rounded-lg leading-[3rem] hover:bg-gray-50">
-                ${task.title}
-              </div>
-              <input
-                id="js-title-input-${id}"
-                type="text"
-                value=${task.title}
-                class="hidden input input-bordered w-full p-4 text-lg leading-[3rem]"
-              />
-            </h3>
-            <div class="h-32 flex grow">
-              <p
-                id="js-content-display-${id}"
-                class="size-full p-4 overflow-x-scroll rounded-lg hover:bg-gray-50">
-                ${task.description}
-              </p>
-              <textarea
-                id="js-content-input-${id}"
-                class="hidden input input-bordered size-full p-4 text-base"
-                rows="5">${task.description}</textarea
-              >
-            </div>
-              <div class="w-full max-w-xs">
-                <div class="relative">
-                  <select
-                    id="js-content-select-${id}"
-                    name="task-status"
-                    class="select select-bordered w-full pl-4 py-2"
-                    onchange="updateStatus(event)">
-                    ${statusList
-                      .map(
-                        (status) => `
-                      <option value="${status.key}" ${status.key === task.status.key ? 'selected' : ''}>
-                        ${status.value}
-                      </option>
-                    `,
-                      )
-                      .join('')}
-                  </select>
-                </div>
-              </div>
-            </div>
-          </div>
-          <label class="modal-backdrop" for="${target}-${task.id}"></label>
-        `;
-    return modal;
-  }
-  document.addEventListener('DOMContentLoaded', () => {
-    statusList.forEach((status) => {
-      const taskList = taskListInstance.getTasksByStatus(status);
-      taskList.forEach((task) => {
-        const container = document.querySelector(`#task-${task.id}`);
-        container?.parentNode?.appendChild(createModalHTML(task, task.id, 'task'));
-      });
-    });
-
-    const newTaskButton = document.querySelectorAll('.js-new-task-button');
-    newTaskButton.forEach((button) => {
-      button.addEventListener('click', (e) => {
-        const value = (e?.target as Element)?.closest('label')?.htmlFor;
-        const clickedStatus = value?.replace('task-', '');
-        if (!clickedStatus) return;
-
-        (e?.target as Element)?.closest('div')?.appendChild(
-          createModalHTML(
-            taskListInstance.add({
-              title: 'New Task',
-              description: 'New Description',
-              status: statusList[0],
-            }),
-            clickedStatus,
-            'task',
-          ),
-        );
-      });
-    });
-  });
-
-  function updateTitle(id, newTitle) {
-    console.log(newTitle);
-  }
-
-  function updateContent(id, newContent) {
-    console.log(newContent);
-  }
-
-  function updateStatus(event) {
-    const newStatus = event.target.value;
-    console.log(newStatus);
-  }
-
-  document.addEventListener('DOMContentLoaded', () => {
-    // title edit
-    document.querySelectorAll('[id^=js-title-display]').forEach((titleDisplay) => {
-      const taskId = titleDisplay.id.replace('js-title-display-', '');
-      const titleInput = document.getElementById(`js-title-input-${taskId}`);
-
-      if (!titleInput) return;
-
-      titleDisplay.addEventListener('click', () => {
-        titleDisplay.classList.add('hidden');
-        titleInput.classList.remove('hidden');
-        titleInput.focus();
-      });
-
-      titleInput.addEventListener('blur', async (e) => {
-        const newTitle = e.target?.value;
-        titleDisplay.textContent = newTitle;
-        titleDisplay.classList.remove('hidden');
-        titleInput.classList.add('hidden');
-        updateTitle(taskId, newTitle);
-      });
-
-      titleInput.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter') {
-          titleInput.blur();
-        }
-      });
-    });
-
-    //content edit
-    document.querySelectorAll('[id^=js-content-display]').forEach((contentDisplay) => {
-      const taskId = contentDisplay.id.replace('js-content-display-', '');
-      const contentInput = document.getElementById(`js-content-input-${taskId}`);
-
-      if (!contentInput) return;
-
-      contentDisplay.addEventListener('click', () => {
-        contentDisplay.classList.add('hidden');
-        contentInput.classList.remove('hidden');
-        contentInput.focus();
-      });
-
-      contentInput.addEventListener('blur', async (e) => {
-        const newContent = e.target?.value;
-        contentDisplay.textContent = newContent;
-        contentDisplay.classList.remove('hidden');
-        contentInput.classList.add('hidden');
-        updateContent(taskId, newContent);
-      });
-    });
-  });
-
-  // Header
-  document.addEventListener('DOMContentLoaded', () => {
-    const searchInput = document.getElementById('searchInput') as HTMLInputElement;
-    const taskSuggestions = document.getElementById('taskSuggestions') as HTMLUListElement;
-
-    function updateTaskList(query: string) {
-      const filteredTasks = taskListInstance.getTasksByKeyword(query);
-      taskSuggestions.style.display =
-        filteredTasks.length > 0 || query.length > 0 ? 'block' : 'none';
-
-      taskSuggestions.innerHTML = filteredTasks
-        .map(
-          (task: Task) => `
-            <li id="suggestion-${task.id}" class="suggestion-item p-2 hover:bg-gray-200 cursor-pointer" data-index="${task.id}">
-              <label class="cursor-pointer" for="suggestion-modal-${task.id}">
-                <h2>${task.title}</h2>
-                <p>${task.description}</p>
-              </label>
-              <input type="checkbox" id="suggestion-modal-${task.id}" class="modal-toggle" />
-            </li>
-          `,
-        )
-        .join('');
-      renderSuggestions();
-    }
-
-    function renderSuggestions() {
-      document.querySelectorAll('.suggestion-item').forEach((item) => {
-        const id = item.getAttribute('id')?.replace('suggestion-', '');
-        const task = taskListInstance.getTaskById(Number(id));
-        if (!task) return;
-        const modal = createModalHTML(task, Number(id), 'suggestion-modal');
-        item.appendChild(modal);
-      });
-    }
-
-    function handleSearch() {
-      const query = searchInput.value.trim();
-      updateTaskList(query);
-    }
-
-    function closeSuggestions() {
-      setTimeout(() => {
-        if (
-          document.activeElement !== searchInput &&
-          !taskSuggestions.contains(document.activeElement)
-        ) {
-          taskSuggestions.style.display = 'none';
-        }
-      }, 100);
-    }
-
-    searchInput.addEventListener('input', handleSearch);
-    searchInput.addEventListener('focusout', closeSuggestions);
-    taskSuggestions.addEventListener('focusout', closeSuggestions);
-  });
-
-  // sample data
-  taskListInstance.add({
-    title: 'project02',
-    description: 'Complete the final assignment for the course',
-    status: statusList[0],
-  });
-  taskListInstance.add({
-    title: 'presentation03',
-    description: 'Complete the final assignment for the course',
-    status: statusList[1],
-  });
-  taskListInstance.add({
-    title: 'test',
-    description: 'Complete the final assignment for the course',
-    status: statusList[2],
-  });
 </script>

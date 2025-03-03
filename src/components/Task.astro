@@ -1,0 +1,195 @@
+---
+interface Props {
+  columnTitle: string;
+  task?: {
+    id: string;
+    category: string;
+    title: string;
+    description: string;
+  };
+  isEdit?: boolean;
+}
+
+const { columnTitle, task, isEdit = false } = Astro.props;
+const modalId = isEdit ? `edit-modal-${task?.id}` : `modal-${columnTitle}`;
+const formId = isEdit ? `edit-form-${task?.id}` : `form-${columnTitle}`;
+---
+
+<dialog id={modalId} class="backdrop:bg-black backdrop:bg-opacity-50 p-0 rounded-lg">
+  <div class="bg-white p-6 w-full max-w-md">
+    <h2 class="text-xl font-semibold mb-4">
+      {isEdit ? `Edit Task` : `Add New Task to ${columnTitle}`}
+    </h2>
+    <form method="dialog" id={formId}>
+      <input type="hidden" name="taskId" value={task?.id} />
+      <input type="hidden" name="columnTitle" value={columnTitle} />
+      <div class="mb-4">
+        <label class="block text-sm font-medium text-gray-700 mb-1"> Category </label>
+        <input
+          type="text"
+          name="category"
+          class="w-full p-2 border rounded-md"
+          value={task?.category || ''}
+          required
+        />
+      </div>
+      <div class="mb-4">
+        <label class="block text-sm font-medium text-gray-700 mb-1"> Title </label>
+        <input
+          type="text"
+          name="title"
+          class="w-full p-2 border rounded-md"
+          value={task?.title || ''}
+          required
+        />
+      </div>
+      <div class="mb-6">
+        <label class="block text-sm font-medium text-gray-700 mb-1"> Description </label>
+        <textarea name="description" class="w-full p-2 border rounded-md" rows="3" required
+          >{task?.description || ''}</textarea
+        >
+      </div>
+      <div class="mb-6">
+        <label class="block text-sm font-medium text-gray-700 mb-1"> Assign Members </label>
+        <div class="space-y-2">
+          <div class="flex items-center">
+            <input
+              type="checkbox"
+              id={`member-Koya-${modalId}`}
+              name="members"
+              value="Koya"
+              class="mr-2"
+            />
+            <label for={`member-Koya-${modalId}`} class="flex items-center">
+              <div
+                class="w-7 h-7 rounded-full flex items-center justify-center text-xs text-white bg-blue-500 mr-2"
+              >
+                KO
+              </div>
+              Koya
+            </label>
+          </div>
+          <div class="flex items-center">
+            <input
+              type="checkbox"
+              id={`member-Daz-${modalId}`}
+              name="members"
+              value="Daz"
+              class="mr-2"
+            />
+            <label for={`member-Daz-${modalId}`} class="flex items-center">
+              <div
+                class="w-7 h-7 rounded-full flex items-center justify-center text-xs text-white bg-orange-500 mr-2"
+              >
+                DA
+              </div>
+              Daz
+            </label>
+          </div>
+          <div class="flex items-center">
+            <input
+              type="checkbox"
+              id={`member-Jane-${modalId}`}
+              name="members"
+              value="Jane"
+              class="mr-2"
+            />
+            <label for={`member-Jane-${modalId}`} class="flex items-center">
+              <div
+                class="w-7 h-7 rounded-full flex items-center justify-center text-xs text-white bg-pink-500 mr-2"
+              >
+                JA
+              </div>
+              Jane
+            </label>
+          </div>
+          <div class="flex items-center">
+            <input
+              type="checkbox"
+              id={`member-Julia-${modalId}`}
+              name="members"
+              value="Julia"
+              class="mr-2"
+            />
+            <label for={`member-Julia-${modalId}`} class="flex items-center">
+              <div
+                class="w-7 h-7 rounded-full flex items-center justify-center text-xs text-white bg-green-500 mr-2"
+              >
+                JU
+              </div>
+              Julia
+            </label>
+          </div>
+        </div>
+      </div>
+      <div class="flex justify-end gap-2">
+        <button
+          type="button"
+          class="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-md"
+          onclick={`document.getElementById('${modalId}').close()`}
+        >
+          Cancel
+        </button>
+        <button type="submit" class="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600">
+          {isEdit ? 'Save Changes' : 'Add Task'}
+        </button>
+      </div>
+    </form>
+  </div>
+</dialog>
+
+<script define:vars={{ modalId, formId, isEdit, columnTitle }}>
+  document.getElementById(formId).addEventListener('submit', (e) => {
+    e.preventDefault();
+    const formData = new FormData(e.target);
+
+    const teamMembers = {
+      Koya: { name: 'Koya', initials: 'KO', color: 'blue' },
+      Daz: { name: 'Daz', initials: 'DA', color: 'orange' },
+      Jane: { name: 'Jane', initials: 'JA', color: 'pink' },
+      Julia: { name: 'Julia', initials: 'JU', color: 'green' },
+    };
+
+    const selectedMembers = formData.getAll('members');
+    const assignees = selectedMembers.map((name) => teamMembers[name]);
+
+    if (isEdit) {
+      const taskId = formData.get('taskId');
+      const task = {
+        id: taskId,
+        category: formData.get('category'),
+        title: formData.get('title'),
+        description: formData.get('description'),
+        assignees: assignees,
+      };
+
+      document.dispatchEvent(
+        new CustomEvent('task-updated', {
+          detail: { task },
+        }),
+      );
+
+      console.log('Task updated:', task);
+    } else {
+      const columnTitle = formData.get('columnTitle');
+      const task = {
+        id: `task-${Date.now()}`,
+        category: formData.get('category'),
+        title: formData.get('title'),
+        description: formData.get('description'),
+        assignees: assignees,
+      };
+
+      document.dispatchEvent(
+        new CustomEvent('task-added', {
+          detail: { task, columnTitle },
+        }),
+      );
+
+      console.log('New task:', task);
+    }
+
+    document.getElementById(modalId).close();
+    e.target.reset();
+  });
+</script>

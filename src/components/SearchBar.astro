@@ -1,0 +1,123 @@
+---
+
+---
+
+<div class="relative">
+  <div class="flex items-center bg-white border rounded-lg px-3 py-2 w-44 sm:w-64">
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      class="h-5 w-5 text-gray-400"
+      fill="none"
+      viewBox="0 0 24 24"
+      stroke="currentColor"
+    >
+      <path
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        stroke-width="2"
+        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+    </svg>
+    <input
+      type="text"
+      id="search-input"
+      placeholder="Search tasks..."
+      class="ml-2 outline-none w-full border-none"
+    />
+  </div>
+
+  <div
+    id="search-results"
+    class="absolute mt-1 w-full bg-white border rounded-lg shadow-lg hidden z-10 max-h-60 overflow-y-auto"
+  >
+  </div>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const searchInput = document.getElementById('search-input');
+    const searchResults = document.getElementById('search-results');
+
+    if (!searchInput || !searchResults) return;
+
+    searchInput.addEventListener('input', () => {
+      const query = searchInput.value.toLowerCase().trim();
+
+      if (query.length < 2) {
+        searchResults.innerHTML = '';
+        searchResults.classList.add('hidden');
+        return;
+      }
+
+      const taskCards = document.querySelectorAll('.task-card');
+      const matchingTasks = [];
+
+      taskCards.forEach((card) => {
+        const taskId = card.getAttribute('data-task-id');
+        const taskTitle = card.getAttribute('data-task-title')?.toLowerCase() || '';
+        const taskCategory = card.getAttribute('data-task-category')?.toLowerCase() || '';
+        const taskDescription =
+          card.querySelector('.text-sm.text-slate-500.mb-4')?.textContent?.toLowerCase() || '';
+
+        if (
+          taskTitle.includes(query) ||
+          taskCategory.includes(query) ||
+          taskDescription.includes(query)
+        ) {
+          matchingTasks.push({
+            id: taskId,
+            title: card.getAttribute('data-task-title') || '',
+            category: card.getAttribute('data-task-category') || '',
+          });
+        }
+      });
+
+      if (matchingTasks.length > 0) {
+        searchResults.innerHTML = matchingTasks
+          .map(
+            (task) => `
+          <div class="px-4 py-2 hover:bg-gray-100 cursor-pointer search-result-item" data-task-id="${task.id}">
+            <div class="text-xs text-gray-500">${task.category}</div>
+            <div class="font-medium">${task.title}</div>
+          </div>
+        `,
+          )
+          .join('');
+
+        searchResults.classList.remove('hidden');
+
+        document.querySelectorAll('.search-result-item').forEach((item) => {
+          item.addEventListener('click', () => {
+            const taskId = item.getAttribute('data-task-id');
+            const taskElement = document.getElementById(taskId);
+
+            if (taskElement) {
+              taskElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+              taskElement.classList.add('ring-2', 'ring-blue-500');
+
+              setTimeout(() => {
+                taskElement.classList.remove('ring-2', 'ring-blue-500');
+              }, 2000);
+
+              const editButton = taskElement.querySelector('.edit-task-button');
+              if (editButton) {
+                editButton.click();
+              }
+            }
+
+            searchResults.classList.add('hidden');
+            searchInput.value = '';
+          });
+        });
+      } else {
+        searchResults.innerHTML = '<div class="px-4 py-2 text-gray-500">No results found</div>';
+        searchResults.classList.remove('hidden');
+      }
+    });
+
+    document.addEventListener('click', (e) => {
+      if (!searchInput.contains(e.target) && !searchResults.contains(e.target)) {
+        searchResults.classList.add('hidden');
+      }
+    });
+  });
+</script>

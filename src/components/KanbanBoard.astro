@@ -55,8 +55,8 @@ import Column from './Column.astro';
   function createTaskCardHTML(task: Task) {
     const taskCard = document.createElement('div');
     taskCard.innerHTML = `
-        <div>
-          <label for="task-${task.id}" class="cursor-pointer">
+        <div id="task-id-${task.id}" class="task-card" data-task-id="${task.id}">
+          <label draggable="true" for="task-${task.id}" class="cursor-pointer">
             <div class="card bg-white shadow-md">
               <div class="card-body p-4">
                 <div class="flex justify-between items-start">
@@ -167,6 +167,49 @@ import Column from './Column.astro';
     });
   }
 
+  // drag and drop
+  function dragStart(event) {
+    const taskCard = event.target.closest('.task-card');
+    if (!taskCard) return;
+
+    event.dataTransfer.setData('text/plain', taskCard.id);
+    event.dataTransfer.effectAllowed = 'move';
+
+    setTimeout(() => {
+      taskCard.classList.add('opacity-50');
+    }, 0);
+  }
+
+  function dragEnd(event) {
+    event.target.classList.remove('opacity-50');
+  }
+
+  window.allowDrop = (event) => {
+    console.log('allowDrop');
+    event.preventDefault();
+  };
+
+  window.dropTask = (event) => {
+    event.preventDefault();
+
+    const taskId = event.dataTransfer.getData('text/plain');
+    const draggedTask = document.getElementById(taskId);
+
+    if (!draggedTask) return;
+
+    draggedTask.classList.remove('opacity-50');
+
+    const dropContainer = event.target.closest('.task-container');
+    console.log(dropContainer);
+    if (!dropContainer) return;
+
+    dropContainer.appendChild(draggedTask);
+
+    console.log(
+      `Task ${taskId} moved to column ${dropContainer.getAttribute('data-column-index')}`,
+    );
+  };
+
   // Render
   document.addEventListener('DOMContentLoaded', () => {
     renderKanban();
@@ -176,6 +219,11 @@ import Column from './Column.astro';
   });
 
   document.addEventListener('DOMContentLoaded', () => {
+    const tasks = document.querySelectorAll('[data-task-id]');
+    tasks.forEach((task) => {
+      task.addEventListener('dragstart', dragStart);
+      task.addEventListener('dragend', dragEnd);
+    });
     const newTaskButton = document.querySelectorAll('.js-new-task-button');
     newTaskButton.forEach((button) => {
       button.addEventListener('click', (e) => {
@@ -183,48 +231,39 @@ import Column from './Column.astro';
         const clickedStatus = value?.replace('task-', '');
         if (!clickedStatus) return;
 
-        // ステータスを検索
         const statusObj = statusList.find((status) => status.key === clickedStatus);
         if (!statusObj) return;
 
-        // 新しいタスクを作成 - 正しいステータスを使用
         const newTask = taskListInstance.add({
           title: 'New Task',
           description: 'New Description',
-          status: statusObj, // クリックされたカラムのステータスを使用
+          status: statusObj,
         });
 
-        // 先にタスクカードをレンダリング
         renderTaskCard();
 
-        // モーダル表示用のチェックボックスを作成
         const modalCheckbox = document.createElement('input');
         modalCheckbox.type = 'checkbox';
         modalCheckbox.id = `task-${newTask.id}`;
         modalCheckbox.className = 'modal-toggle';
-        modalCheckbox.checked = true; // モーダルを表示状態に
+        modalCheckbox.checked = true;
 
         const parentDiv = (e?.target as Element)?.closest('div');
         if (parentDiv) {
-          // チェックボックスを追加
           parentDiv.appendChild(modalCheckbox);
 
-          // モーダルを作成して追加
           const modalElement = createModalHTML(newTask, newTask.id);
           parentDiv.appendChild(modalElement);
 
-          // モーダル作成後にイベントリスナーを追加
           addEventListenerModal();
 
-          // モーダルが閉じられたときのイベントリスナーを追加
           modalCheckbox.addEventListener('change', (event) => {
             if (!(event.target as HTMLInputElement).checked) {
-              // モーダルが完全に閉じた後に再レンダリングするために遅延実行
               setTimeout(() => {
                 renderTaskCard();
                 renderModal();
                 addEventListenerModal();
-              }, 3000); // モーダルのアニメーション時間に合わせて調整（ミリ秒）
+              }, 3000);
             }
           });
         }

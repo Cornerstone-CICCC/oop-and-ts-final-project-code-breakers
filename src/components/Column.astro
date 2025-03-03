@@ -18,7 +18,6 @@ const { data, columnIndex } = Astro.props;
       <button class="p-1 hover:bg-slate-200 rounded add-task-button" data-column={data.title}>
         +
       </button>
-      <button class="p-1 hover:bg-slate-200 rounded">•••</button>
     </div>
   </div>
   <div
@@ -81,8 +80,8 @@ const { data, columnIndex } = Astro.props;
         <div class="text-xs text-slate-500 mb-2">${task.category}</div>
         <h3 class="text-base font-semibold mb-2">${task.title}</h3>
         <p class="text-sm text-slate-500 mb-4">${task.description}</p>
-        <div class="flex gap-1"></div>
-        
+        <div class="flex gap-1 assignees-container"></div>
+
         <div class="relative">
           <button 
             class="absolute top-[-40px] right-[-12px] p-1 hover:bg-slate-100 rounded task-menu-button"
@@ -96,7 +95,7 @@ const { data, columnIndex } = Astro.props;
           >
             <ul class="py-1">
               <li>
-                <button 
+                <button
                   class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 edit-task-button"
                   data-task-id="${task.id}"
                   data-column-title="${columnTitle}"
@@ -105,7 +104,15 @@ const { data, columnIndex } = Astro.props;
                 </button>
               </li>
               <li>
-                <button 
+                <button
+                  class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 assign-member-button"
+                  data-task-id="${task.id}"
+                >
+                  Assign Member
+                </button>
+              </li>
+              <li>
+                <button
                   class="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100 delete-task-button"
                   data-task-id="${task.id}"
                 >
@@ -118,6 +125,25 @@ const { data, columnIndex } = Astro.props;
       `;
 
       column.appendChild(taskElement);
+
+      if (task.assignees && task.assignees.length > 0) {
+        const assigneesContainer = taskElement.querySelector('.assignees-container');
+        task.assignees.forEach((assignee) => {
+          const colorClass =
+            {
+              blue: 'bg-blue-500',
+              orange: 'bg-orange-500',
+              pink: 'bg-pink-500',
+              green: 'bg-green-500',
+            }[assignee.color] || 'bg-gray-500';
+
+          const assigneeElement = document.createElement('div');
+          assigneeElement.className = `w-7 h-7 rounded-full flex items-center justify-center text-xs text-white ${colorClass}`;
+          assigneeElement.textContent = assignee.initials;
+          assigneeElement.title = assignee.name || '';
+          assigneesContainer.appendChild(assigneeElement);
+        });
+      }
 
       const menuButton = taskElement.querySelector('.task-menu-button');
       menuButton.addEventListener('click', (e) => {
@@ -208,7 +234,7 @@ const { data, columnIndex } = Astro.props;
           cancelButton.addEventListener('click', () => {
             modal.close();
           });
-
+          // フォーム送信イベント
           const form = modal.querySelector(`#edit-form-${task.id}`);
           form.addEventListener('submit', (e) => {
             e.preventDefault();
@@ -218,11 +244,120 @@ const { data, columnIndex } = Astro.props;
               category: formData.get('category'),
               title: formData.get('title'),
               description: formData.get('description'),
+              assignees: task.assignees || [],
             };
 
             document.dispatchEvent(
               new CustomEvent('task-updated', {
                 detail: { task: updatedTask },
+              }),
+            );
+
+            modal.close();
+          });
+        }
+
+        if (modal instanceof HTMLDialogElement) {
+          modal.showModal();
+        }
+
+        document.getElementById(`menu-${task.id}`).classList.add('hidden');
+      });
+
+      const assignButton = taskElement.querySelector('.assign-member-button');
+      assignButton.addEventListener('click', () => {
+        const modalId = `assign-modal-${task.id}`;
+        let modal = document.getElementById(modalId);
+
+        if (!modal) {
+          modal = document.createElement('dialog');
+          modal.id = modalId;
+          modal.className = 'modal';
+
+          const teamMembers = [
+            { name: 'Koya', initials: 'KO', color: 'blue' },
+            { name: 'Daz', initials: 'DA', color: 'orange' },
+            { name: 'Jane', initials: 'JA', color: 'pink' },
+            { name: 'Julia', initials: 'JU', color: 'green' },
+          ];
+
+          const assignedMemberIds = (task.assignees || []).map((a) => a.name);
+
+          modal.innerHTML = `
+            <div class="bg-white p-6 w-full max-w-md">
+              <h2 class="text-xl font-semibold mb-4">Assign Members</h2>
+              <form method="dialog" id="assign-form-${task.id}">
+                <input type="hidden" name="taskId" value="${task.id}" />
+                <div class="mb-6">
+                  <div class="space-y-2">
+                    ${teamMembers
+                      .map(
+                        (member) => `
+                      <div class="flex items-center">
+                        <input 
+                          type="checkbox" 
+                          id="member-${member.name}-${task.id}" 
+                          name="members" 
+                          value="${member.name}" 
+                          class="mr-2"
+                          ${assignedMemberIds.includes(member.name) ? 'checked' : ''}
+                        />
+                        <label for="member-${member.name}-${task.id}" class="flex items-center">
+                          <div class="w-7 h-7 rounded-full flex items-center justify-center text-xs text-white bg-${member.color}-500 mr-2">
+                            ${member.initials}
+                          </div>
+                          ${member.name}
+                        </label>
+                      </div>
+                    `,
+                      )
+                      .join('')}
+                  </div>
+                </div>
+                <div class="flex justify-end gap-2">
+                  <button
+                    type="button"
+                    class="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-md cancel-button"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    class="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600"
+                  >
+                    Save
+                  </button>
+                </div>
+              </form>
+            </div>
+          `;
+
+          document.body.appendChild(modal);
+
+          const cancelButton = modal.querySelector('.cancel-button');
+          cancelButton.addEventListener('click', () => {
+            modal.close();
+          });
+
+          const form = modal.querySelector(`#assign-form-${task.id}`);
+          form.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const formData = new FormData(form);
+            const selectedMembers = formData.getAll('members');
+
+            const newAssignees = teamMembers
+              .filter((member) => selectedMembers.includes(member.name))
+              .map((member) => ({
+                name: member.name,
+                initials: member.initials,
+                color: member.color,
+              }));
+
+            task.assignees = newAssignees;
+
+            document.dispatchEvent(
+              new CustomEvent('members-assigned', {
+                detail: { taskId: task.id, assignees: newAssignees },
               }),
             );
 
@@ -277,6 +412,34 @@ const { data, columnIndex } = Astro.props;
 
         taskElement.setAttribute('data-task-title', task.title);
         taskElement.setAttribute('data-task-category', task.category);
+      }
+    });
+
+    document.addEventListener('members-assigned', (e) => {
+      const { taskId, assignees } = e.detail;
+      const taskElement = document.getElementById(taskId);
+
+      if (taskElement) {
+        const assigneesContainer = taskElement.querySelector('.assignees-container');
+        if (assigneesContainer) {
+          assigneesContainer.innerHTML = '';
+
+          assignees.forEach((assignee) => {
+            const colorClass =
+              {
+                blue: 'bg-blue-500',
+                orange: 'bg-orange-500',
+                pink: 'bg-pink-500',
+                green: 'bg-green-500',
+              }[assignee.color] || 'bg-gray-500';
+
+            const assigneeElement = document.createElement('div');
+            assigneeElement.className = `w-7 h-7 rounded-full flex items-center justify-center text-xs text-white ${colorClass}`;
+            assigneeElement.textContent = assignee.initials;
+            assigneeElement.title = assignee.name || '';
+            assigneesContainer.appendChild(assigneeElement);
+          });
+        }
       }
     });
   });

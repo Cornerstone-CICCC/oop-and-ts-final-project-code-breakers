@@ -236,28 +236,28 @@ import Column from './Column.astro';
         if (!statusObj || !parentDiv) return;
 
         const newTask = taskListInstance.add({
-          title: 'New Task',
-          description: 'New Description',
+          title: 'Title',
+          description: 'Description',
           status: statusObj,
         });
 
-        const existingModals = parentDiv.querySelectorAll('.modal');
-        existingModals.forEach((modal) => modal.remove());
+        // const existingModals = parentDiv.querySelectorAll('.modal');
+        // existingModals.forEach((modal) => modal.remove());
 
         const modalElement = createModalHTML(newTask, newTask.id);
-        parentDiv.appendChild(modalElement);
+        // parentDiv.appendChild(modalElement);
 
-        const inputElement = parentDiv.querySelector(
-          `input[type="checkbox"][id="task-${clickedStatus}"]`,
-        );
-        if (inputElement) {
-          inputElement.id = `task-${newTask.id}`;
-        }
+        // const inputElement = parentDiv.querySelector(
+        //   `input[type="checkbox"][id="task-${clickedStatus}"]`,
+        // );
+        // if (inputElement) {
+        //   inputElement.id = `task-${newTask.id}`;
+        // }
 
-        const labelElement = parentDiv.querySelector(`label[for="task-${clickedStatus}"]`);
-        if (labelElement) {
-          labelElement.setAttribute('for', `task-${newTask.id}`);
-        }
+        // const labelElement = parentDiv.querySelector(`label[for="task-${clickedStatus}"]`);
+        // if (labelElement) {
+        //   labelElement.setAttribute('for', `task-${newTask.id}`);
+        // }
 
         renderTaskCard();
         renderModal();

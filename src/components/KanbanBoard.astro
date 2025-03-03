@@ -96,7 +96,7 @@ import Column from './Column.astro';
 
   //modal
 
-  function createModalHTML(task: Task, id: string | number) {
+  function createModalHTML(task: Task, id: number) {
     const modal = document.createElement('div');
     modal.className = 'modal z-1000';
     modal.role = 'dialog';
@@ -231,8 +231,9 @@ import Column from './Column.astro';
         const clickedStatus = value?.replace('task-', '');
         if (!clickedStatus) return;
 
+        const parentDiv = (e?.target as Element)?.closest('div');
         const statusObj = statusList.find((status) => status.key === clickedStatus);
-        if (!statusObj) return;
+        if (!statusObj || !parentDiv) return;
 
         const newTask = taskListInstance.add({
           title: 'New Task',
@@ -240,33 +241,27 @@ import Column from './Column.astro';
           status: statusObj,
         });
 
-        renderTaskCard();
+        const existingModals = parentDiv.querySelectorAll('.modal');
+        existingModals.forEach((modal) => modal.remove());
 
-        const modalCheckbox = document.createElement('input');
-        modalCheckbox.type = 'checkbox';
-        modalCheckbox.id = `task-${newTask.id}`;
-        modalCheckbox.className = 'modal-toggle';
-        modalCheckbox.checked = true;
+        const modalElement = createModalHTML(newTask, newTask.id);
+        parentDiv.appendChild(modalElement);
 
-        const parentDiv = (e?.target as Element)?.closest('div');
-        if (parentDiv) {
-          parentDiv.appendChild(modalCheckbox);
-
-          const modalElement = createModalHTML(newTask, newTask.id);
-          parentDiv.appendChild(modalElement);
-
-          addEventListenerModal();
-
-          modalCheckbox.addEventListener('change', (event) => {
-            if (!(event.target as HTMLInputElement).checked) {
-              setTimeout(() => {
-                renderTaskCard();
-                renderModal();
-                addEventListenerModal();
-              }, 3000);
-            }
-          });
+        const inputElement = parentDiv.querySelector(
+          `input[type="checkbox"][id="task-${clickedStatus}"]`,
+        );
+        if (inputElement) {
+          inputElement.id = `task-${newTask.id}`;
         }
+
+        const labelElement = parentDiv.querySelector(`label[for="task-${clickedStatus}"]`);
+        if (labelElement) {
+          labelElement.setAttribute('for', `task-${newTask.id}`);
+        }
+
+        renderTaskCard();
+        renderModal();
+        addEventListenerModal();
       });
     });
   });

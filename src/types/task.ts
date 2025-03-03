@@ -1,14 +1,16 @@
-export type statusType = { key: string; value: string };
+export interface AssigneeData {
+  initials: string;
+  color: 'blue' | 'orange' | 'pink' | 'green';
+}
 
-export const statusList: statusType[] = [
-  { key: "todo", value: "To do" },
-  { key: "in-progress", value: "In progress" },
-  { key: "done", value: "Done" },
-];
-
-export interface Task {
-  id: number;
+export interface TaskData {
+  category: string;
   title: string;
   description: string;
-  status: statusType;
+  assignees: AssigneeData[];
+}
+
+export interface ColumnData {
+  title: string;
+  tasks: TaskData[];
 }

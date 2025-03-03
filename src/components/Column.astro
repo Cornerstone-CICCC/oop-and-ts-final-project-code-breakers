@@ -234,7 +234,6 @@ const { data, columnIndex } = Astro.props;
           cancelButton.addEventListener('click', () => {
             modal.close();
           });
-          // フォーム送信イベント
           const form = modal.querySelector(`#edit-form-${task.id}`);
           form.addEventListener('submit', (e) => {
             e.preventDefault();

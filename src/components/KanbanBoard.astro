@@ -183,16 +183,51 @@ import Column from './Column.astro';
         const clickedStatus = value?.replace('task-', '');
         if (!clickedStatus) return;
 
-        (e?.target as Element)?.closest('div')?.appendChild(
-          createModalHTML(
-            taskListInstance.add({
-              title: 'New Task',
-              description: 'New Description',
-              status: statusList[0],
-            }),
-            clickedStatus,
-          ),
-        );
+        // ステータスを検索
+        const statusObj = statusList.find((status) => status.key === clickedStatus);
+        if (!statusObj) return;
+
+        // 新しいタスクを作成 - 正しいステータスを使用
+        const newTask = taskListInstance.add({
+          title: 'New Task',
+          description: 'New Description',
+          status: statusObj, // クリックされたカラムのステータスを使用
+        });
+
+        // 先にタスクカードをレンダリング
+        renderTaskCard();
+
+        // モーダル表示用のチェックボックスを作成
+        const modalCheckbox = document.createElement('input');
+        modalCheckbox.type = 'checkbox';
+        modalCheckbox.id = `task-${newTask.id}`;
+        modalCheckbox.className = 'modal-toggle';
+        modalCheckbox.checked = true; // モーダルを表示状態に
+
+        const parentDiv = (e?.target as Element)?.closest('div');
+        if (parentDiv) {
+          // チェックボックスを追加
+          parentDiv.appendChild(modalCheckbox);
+
+          // モーダルを作成して追加
+          const modalElement = createModalHTML(newTask, newTask.id);
+          parentDiv.appendChild(modalElement);
+
+          // モーダル作成後にイベントリスナーを追加
+          addEventListenerModal();
+
+          // モーダルが閉じられたときのイベントリスナーを追加
+          modalCheckbox.addEventListener('change', (event) => {
+            if (!(event.target as HTMLInputElement).checked) {
+              // モーダルが完全に閉じた後に再レンダリングするために遅延実行
+              setTimeout(() => {
+                renderTaskCard();
+                renderModal();
+                addEventListenerModal();
+              }, 3000); // モーダルのアニメーション時間に合わせて調整（ミリ秒）
+            }
+          });
+        }
       });
     });
   });
@@ -267,7 +302,7 @@ import Column from './Column.astro';
     console.log('Updated Task:', updatedTask);
   }
 
-  function updateContent(id, newContent) {
+  function updateContent(id: number | string, newContent: string) {
     console.log('updateContent', id, newContent);
     const task = taskListInstance.getTaskById(Number(id));
     if (!task) return;

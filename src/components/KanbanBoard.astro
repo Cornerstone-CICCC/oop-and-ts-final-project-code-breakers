@@ -13,7 +13,8 @@ import Column from './Column.astro';
           xmlns="http://www.w3.org/2000/svg"
           viewBox="0 0 16 16"
           fill="currentColor"
-          class="h-4 w-4 opacity-70">
+          class="h-4 w-4 opacity-70"
+        >
           <path
             fill-rule="evenodd"
             d="M9.965 11.026a5 5 0 1 1 1.06-1.06l2.755 2.754a.75.75 0 1 1-1.06 1.06l-2.755-2.754ZM10.5 7a3.5 3.5 0 1 1-7 0 3.5 3.5 0 0 1 7 0Z"
@@ -23,7 +24,8 @@ import Column from './Column.astro';
       <ul
         id="taskSuggestions"
         class="mt-2 w-auto bg-white shadow-md rounded-md absolute z-10"
-        style="display: none;">
+        style="display: none;"
+      >
       </ul>
     </div>
   </div>
@@ -79,8 +81,8 @@ import Column from './Column.astro';
   function createTaskCardHTML(task: Task) {
     const taskCard = document.createElement('div');
     taskCard.innerHTML = `
-        <div>
-          <label for="task-${task.id}" class="cursor-pointer">
+        <div id="task-id-${task.id}" class="task-card" data-task-id="${task.id}">
+          <label draggable="true" for="task-${task.id}" class="cursor-pointer">
             <div class="card bg-white shadow-md">
               <div class="card-body p-4">
                 <div class="flex justify-between items-start">
@@ -125,6 +127,57 @@ import Column from './Column.astro';
       });
     });
   });
+
+  document.addEventListener('DOMContentLoaded', () => {
+    const tasks = document.querySelectorAll('[data-task-id]');
+    tasks.forEach((task) => {
+      task.addEventListener('dragstart', dragStart);
+      task.addEventListener('dragend', dragEnd);
+    });
+  });
+
+  // drag and drop
+  function dragStart(event) {
+    const taskCard = event.target.closest('.task-card');
+    if (!taskCard) return;
+
+    event.dataTransfer.setData('text/plain', taskCard.id);
+    event.dataTransfer.effectAllowed = 'move';
+
+    setTimeout(() => {
+      taskCard.classList.add('opacity-50');
+    }, 0);
+  }
+
+  function dragEnd(event) {
+    event.target.classList.remove('opacity-50');
+  }
+
+  window.allowDrop = (event) => {
+    console.log('allowDrop');
+    event.preventDefault();
+  };
+
+  window.dropTask = (event) => {
+    event.preventDefault();
+
+    const taskId = event.dataTransfer.getData('text/plain');
+    const draggedTask = document.getElementById(taskId);
+
+    if (!draggedTask) return;
+
+    draggedTask.classList.remove('opacity-50');
+
+    const dropContainer = event.target.closest('.task-container');
+    console.log(dropContainer);
+    if (!dropContainer) return;
+
+    dropContainer.appendChild(draggedTask);
+
+    console.log(
+      `Task ${taskId} moved to column ${dropContainer.getAttribute('data-column-index')}`,
+    );
+  };
 
   //modal
 
@@ -347,11 +400,11 @@ import Column from './Column.astro';
   taskListInstance.add({
     title: 'presentation03',
     description: 'Complete the final assignment for the course',
-    status: statusList[0],
+    status: statusList[1],
   });
   taskListInstance.add({
     title: 'test',
     description: 'Complete the final assignment for the course',
-    status: statusList[0],
+    status: statusList[2],
   });
 </script>

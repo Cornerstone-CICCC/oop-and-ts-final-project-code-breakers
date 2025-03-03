@@ -1,0 +1,130 @@
+---
+interface Props {
+  columnTitle: string;
+  task?: {
+    id: string;
+    category: string;
+    title: string;
+    description: string;
+  };
+  isEdit?: boolean;
+}
+
+const { columnTitle, task, isEdit = false } = Astro.props;
+const modalId = isEdit ? `edit-modal-${task?.id}` : `modal-${columnTitle}`;
+const formId = isEdit ? `edit-form-${task?.id}` : `form-${columnTitle}`;
+---
+
+<dialog id={modalId} class="modal">
+  <div class="bg-white p-6 w-full max-w-md">
+    <h2 class="text-xl font-semibold mb-4">
+      {isEdit ? `Edit Task` : `Add New Task to ${columnTitle}`}
+    </h2>
+    <form method="dialog" id={formId}>
+      <input type="hidden" name="taskId" value={task?.id} />
+      <input type="hidden" name="columnTitle" value={columnTitle} />
+      <div class="mb-4">
+        <label class="block text-sm font-medium text-gray-700 mb-1"> Category </label>
+        <input
+          type="text"
+          name="category"
+          class="w-full p-2 border rounded-md"
+          value={task?.category || ''}
+          required
+        />
+      </div>
+      <div class="mb-4">
+        <label class="block text-sm font-medium text-gray-700 mb-1"> Title </label>
+        <input
+          type="text"
+          name="title"
+          class="w-full p-2 border rounded-md"
+          value={task?.title || ''}
+          required
+        />
+      </div>
+      <div class="mb-6">
+        <label class="block text-sm font-medium text-gray-700 mb-1"> Description </label>
+        <textarea name="description" class="w-full p-2 border rounded-md" rows="3" required
+          >{task?.description || ''}</textarea
+        >
+      </div>
+      <div class="flex justify-end gap-2">
+        <button
+          type="button"
+          class="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-md"
+          onclick={`document.getElementById('${modalId}').close()`}
+        >
+          Cancel
+        </button>
+        <button type="submit" class="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600">
+          {isEdit ? 'Save Changes' : 'Add Task'}
+        </button>
+      </div>
+    </form>
+  </div>
+</dialog>
+
+<script define:vars={{ modalId, formId, isEdit, columnTitle }}>
+  document.getElementById(formId).addEventListener('submit', (e) => {
+    e.preventDefault();
+    const formData = new FormData(e.target);
+
+    if (isEdit) {
+      const taskId = formData.get('taskId');
+      const task = {
+        id: taskId,
+        category: formData.get('category'),
+        title: formData.get('title'),
+        description: formData.get('description'),
+      };
+
+      document.dispatchEvent(
+        new CustomEvent('task-updated', {
+          detail: { task },
+        }),
+      );
+
+      console.log('Task updated:', task);
+    } else {
+      const columnTitle = formData.get('columnTitle');
+      const task = {
+        id: `task-${Date.now()}`,
+        category: formData.get('category'),
+        title: formData.get('title'),
+        description: formData.get('description'),
+        assignees: [],
+      };
+
+      document.dispatchEvent(
+        new CustomEvent('task-added', {
+          detail: { task, columnTitle },
+        }),
+      );
+
+      console.log('New task:', task);
+    }
+
+    document.getElementById(modalId).close();
+    e.target.reset();
+  });
+</script>
+
+<style>
+  .modal {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 50;
+  }
+
+  .modal-box {
+    max-width: 90%;
+    margin: auto;
+  }
+</style>

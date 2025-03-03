@@ -1,0 +1,81 @@
+---
+import Column from './Column.astro';
+import SearchBar from './SearchBar.astro';
+import { type ColumnData, TEAM_MEMBERS } from '../types';
+
+const columns: ColumnData[] = [
+  {
+    title: 'To do',
+    tasks: [],
+  },
+  {
+    title: 'In progress',
+    tasks: [],
+  },
+  {
+    title: 'Done',
+    tasks: [],
+  },
+];
+---
+
+<div class="p-8 font-sans">
+  <div class="flex justify-between items-center mb-8">
+    <h1 class="text-2xl font-semibold">Kanbanaza</h1>
+    <SearchBar />
+  </div>
+
+  <div class="md:grid md:grid-cols-3 md:gap-6 flex gap-6 overflow-x-auto pb-4 snap-x">
+    {
+      columns.map((column, index) => (
+        <div class="min-w-[85vw] md:min-w-0 snap-center">
+          <Column data={column} columnIndex={index} />
+        </div>
+      ))
+    }
+  </div>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const tasks = document.querySelectorAll('[data-task-id]');
+    tasks.forEach((task) => {
+      task.addEventListener('dragstart', dragStart);
+    });
+  });
+
+  function dragStart(event) {
+    if (event.target.hasAttribute('data-task-id')) {
+      event.dataTransfer.setData('text/plain', event.target.getAttribute('data-task-id'));
+      event.dataTransfer.effectAllowed = 'move';
+
+      setTimeout(() => {
+        event.target.classList.add('opacity-50');
+      }, 0);
+    }
+  }
+
+  window.allowDrop = function (event) {
+    event.preventDefault();
+  };
+
+  window.dropTask = function (event) {
+    event.preventDefault();
+
+    const taskId = event.dataTransfer.getData('text/plain');
+    const draggedTask = document.getElementById(taskId);
+
+    if (!draggedTask) return;
+
+    draggedTask.classList.remove('opacity-50');
+
+    const dropContainer = event.target.closest('.task-container');
+    if (!dropContainer) return;
+
+    dropContainer.appendChild(draggedTask);
+
+    console.log(
+      `Task ${taskId} moved to column ${dropContainer.getAttribute('data-column-index')}`,
+    );
+  };
+</script>
